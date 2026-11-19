@@ -1,0 +1,12 @@
+[package]
+name = "aven-agent-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+crossbeam-queue.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt", "sync", "time"] }
+aven-agentic.workspace = true

@@ -1,0 +1,59 @@
+[package]
+name = "aven-terra-macos-probe"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+build = "build.rs"
+
+[features]
+default = []
+decision-eval = ["live-probe", "dep:aven-agent-model-catalog", "dep:aven-decision", "aven-decision/evals"]
+durable-runtime = ["live-probe", "aven-agentic/probe-harness", "aven-work-composition/durable-runtime", "aven-work-composition/retained-lifetime-diagnostic", "dep:aven-agent-model-catalog", "dep:aven-private-fs"]
+live-probe = [
+    "dep:aven-app",
+    "aven-agent-controller/probe-harness",
+    "aven-agent-provider-transport/probe-harness",
+    "aven-engine/native-agentic-semantic-probe",
+    "aven-engine/agentic-browser-qa",
+    "aven-work-composition/public-qualification",
+    "aven-work-composition/navigation-qualification",
+]
+
+[[bin]]
+name = "macos-terra-agentic-probe"
+path = "src/main.rs"
+required-features = ["live-probe"]
+
+[[bin]]
+name = "windows-work-probe"
+path = "src/windows_main.rs"
+required-features = ["durable-runtime"]
+
+[dependencies]
+image = { version = "=0.25.10", default-features = false, features = ["png"] }
+aven-agent-model-catalog = { workspace = true, optional = true }
+serde_json.workspace = true
+sha2 = "=0.10.9"
+aven-ipc.workspace = true
+aven-agent-controller.workspace = true
+aven-agent-provider-transport.workspace = true
+aven-agentic.workspace = true
+aven-decision = { workspace = true, optional = true }
+aven-engine.workspace = true
+aven-agent-runtime.workspace = true
+aven-store.workspace = true
+aven-core.workspace = true
+aven-app = { workspace = true, optional = true }
+aven-work-composition.workspace = true
+aven-blocker.workspace = true
+aven-blocker-service.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt", "time", "process", "io-util"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+aven-blocker = { workspace = true, features = ["webkit"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+aven-blocker = { workspace = true, features = ["runtime"] }
+aven-private-fs = { workspace = true, optional = true, features = ["windows-work-test-fixtures"] }

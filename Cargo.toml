@@ -1,0 +1,116 @@
+[workspace]
+resolver = "2"
+members = ["crates/*", "desktop", "xtask"]
+exclude = [
+    "vendor/adblock",
+    "vendor/tao",
+    "vendor/tauri",
+    "vendor/tauri-runtime-wry",
+    "vendor/tauri-plugin-updater",
+    "vendor/wry",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+authors = ["crynta"]
+repository = "https://github.com/OnelightCyber/Aven"
+
+[workspace.dependencies]
+aven-agentic = { path = "crates/aven-agentic", version = "=0.1.0" }
+aven-decision = { path = "crates/aven-decision", version = "=0.1.0" }
+aven-agent-model-catalog = { path = "crates/aven-agent-model-catalog", version = "=0.1.0" }
+aven-agent-runtime = { path = "crates/aven-agent-runtime", version = "=0.1.0" }
+aven-agent-provider-transport = { path = "crates/aven-agent-provider-transport", version = "=0.1.0" }
+aven-agent-controller = { path = "crates/aven-agent-controller", version = "=0.1.0" }
+aven-blocker = { path = "crates/aven-blocker", version = "=0.1.0", default-features = false }
+aven-blocker-service = { path = "crates/aven-blocker-service", version = "=0.1.0", default-features = false }
+aven-blocker-update = { path = "crates/aven-blocker-update", version = "=0.1.0", default-features = false }
+aven-account = { path = "crates/aven-account", version = "=0.1.0" }
+aven-core = { path = "crates/aven-core", version = "=0.1.0" }
+aven-credentials = { path = "crates/aven-credentials", version = "=0.1.0" }
+aven-ipc = { path = "crates/aven-ipc", version = "=0.1.0" }
+aven-engine = { path = "crates/aven-engine", version = "=0.1.0" }
+aven-notes = { path = "crates/aven-notes", version = "=0.1.0" }
+aven-import = { path = "crates/aven-import", version = "=0.1.0" }
+aven-private-fs = { path = "crates/aven-private-fs", version = "=0.1.0" }
+aven-store = { path = "crates/aven-store", version = "=0.1.0" }
+aven-voice = { path = "crates/aven-voice", version = "=0.1.0" }
+aven-update-transport = { path = "crates/aven-update-transport", version = "=0.1.0", default-features = false }
+aven-app = { path = "crates/aven-app", version = "=0.1.0" }
+aven-work-composition = { path = "crates/aven-work-composition", version = "=0.1.0" }
+aven-page-assist = { path = "crates/aven-page-assist", version = "=0.1.0" }
+
+tauri = { version = "=2.11.3", features = ["macos-private-api"] }
+tauri-build = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-single-instance = "2"
+wry = "=0.55.1"
+raw-window-handle = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+crc32fast = "=1.5.0"
+ring = "=0.17.14"
+thiserror = "2"
+ulid = "1"
+url = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "macros"] }
+crossbeam-queue = "=0.3.12"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rusqlite = { version = "=0.41.1", default-features = false, features = ["bundled", "cache", "fallible_uint"] }
+specta = { version = "=2.0.0-rc.25", features = ["derive"] }
+specta-typescript = "0.0.12"
+tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
+proptest = "1"
+tempfile = "3"
+tough = { version = "=0.24.0", default-features = false }
+
+# These native-boundary crates start from the exact upstream revisions recorded
+# alongside their source. Keeping the surgical adapters in-tree makes Tauri
+# construction policy and Wry's callback, prompt, teardown, profile, and Linux
+# process-isolation policy reproducible without relying on mutable forks.
+[patch.crates-io]
+tauri-plugin-updater = { path = "vendor/tauri-plugin-updater" }
+adblock = { path = "vendor/adblock" }
+tao = { path = "vendor/tao" }
+tauri = { path = "vendor/tauri" }
+tauri-runtime-wry = { path = "vendor/tauri-runtime-wry" }
+wry = { path = "vendor/wry" }
+
+[profile.release]
+# Browser chrome should fail terminally on an invariant violation instead of
+# attempting to unwind through native WebView/Objective-C/COM callbacks.
+panic = "abort"
+# Keep the native shell small without giving up whole-program optimization.
+opt-level = "s"
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+# Bounds checks remain enabled independently; retain integer overflow checks
+# as well so release builds do not silently wrap security/resource counters.
+overflow-checks = true
+
+# Stripped proc-macro libraries fail to load with the macOS 27 toolchain
+# ("mis-aligned LINKEDIT string pool"); build-time code never ships.
+[profile.release.build-override]
+strip = false
+
+# The content blocker decides every request of every page, on the thread
+# that also draws the window. Its matching is built for speed; the rest of
+# the shell stays built for size.
+[profile.release.package.adblock]
+opt-level = 3
+
+[profile.release.package.aven-blocker]
+opt-level = 3
+
+# Release code generation for the protection QA app only, so its benchmark
+# numbers compare with shipped browsers. Symbols stay for sampling; the desktop
+# and engine build scripts refuse this profile for anything but that app.
+[profile.protection-qa]
+inherits = "release"
+strip = "none"
+debug = "line-tables-only"

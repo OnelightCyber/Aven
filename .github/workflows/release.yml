@@ -1,0 +1,78 @@
+name: Release
+
+# Pushing a tag v<version> builds the Windows installer, signs it for the
+# updater and publishes the release Aven updates itself from. The version in
+# desktop/Cargo.toml must be the tag's.
+#
+# Needs two repository secrets: TAURI_SIGNING_PRIVATE_KEY, the updater's
+# private key whose public half is in desktop/tauri.conf.json, and
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD, its password (empty when it has none).
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    name: Windows installer
+    runs-on: windows-2025
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: The tag is the version being built
+        shell: bash
+        run: |
+          version=$(grep -m1 '^version' desktop/Cargo.toml | cut -d'"' -f2)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match version $version in desktop/Cargo.toml"
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release
+      - run: pnpm install --frozen-lockfile
+      # Builds the interface first (beforeBuildCommand), then the release app
+      # and its per-user installer.
+      - run: pnpm --dir desktop exec tauri build --bundles nsis
+      - name: Sign the installer and write the update manifest
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::the TAURI_SIGNING_PRIVATE_KEY secret is not set: a release nobody can update from is not published"
+            exit 1
+          fi
+          mkdir release
+          cp target/release/bundle/nsis/*-setup.exe release/Aven-Windows-x64-setup.exe
+          pnpm --dir desktop exec tauri signer sign "$(cygpath -w "$PWD/release/Aven-Windows-x64-setup.exe")"
+          node scripts/release/latest_json.mjs "${GITHUB_REF_NAME#v}" "$GITHUB_REPOSITORY" release/Aven-Windows-x64-setup.exe.sig > release/latest.json
+          (cd release && sha256sum Aven-Windows-x64-setup.exe > SHA256SUMS)
+      - name: Publish the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Aven ${GITHUB_REF_NAME#v}" \
+            --generate-notes

@@ -1,0 +1,96 @@
+name: CI
+
+# A private repository pays for every minute, Windows runners twice over:
+# there the checks run only when started by hand. A public one runs them on
+# every push and pull request.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  frontend:
+    name: Interface
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck, lint and unit tests
+        run: pnpm --dir frame run check
+      - run: pnpm --dir frame run build
+      - run: pnpm --dir frame run check:styles
+
+  windows:
+    name: Rust (Windows)
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      # The desktop test binary needs the WebView2 loader at run time, which
+      # hosted runners lack. Native Work storage and journal tests need real
+      # NTFS ownership that elevated hosted runners do not give.
+      - run: >-
+          cargo nextest run --workspace --exclude aven-desktop --locked --retries 2 --no-fail-fast
+          -E 'not (test(/^platform::windows::native_storage::work::tests::/)
+          or (package(aven-store) and test(/^(hub::agent_work|actor::tests::work_journal_|hub::work_document::runtime_store::tests::approved_deadline_)/)))'
+      - run: cargo test --locked --manifest-path desktop/windows-log-tests/Cargo.toml
+
+  package:
+    name: Windows app
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: windows-2025
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: rustup toolchain install --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: package
+      - run: pnpm install --frozen-lockfile
+      # Builds the interface first (beforeBuildCommand), then the release app
+      # and its per-user installer.
+      - run: pnpm --dir desktop exec tauri build --bundles nsis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aven-windows
+          path: |
+            target/release/aven-desktop.exe
+            target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,28 @@
+{
+  "productName": "Aven Protection QA",
+  "identifier": "app.aven.protection-qa",
+  "build": {
+    "devUrl": null
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "create": false,
+        "title": "Aven Protection QA",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 680,
+        "minHeight": 480,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "transparent": true,
+        "trafficLightPosition": {
+          "x": 7,
+          "y": 22
+        },
+        "url": "browser.html"
+      }
+    ]
+  }
+}

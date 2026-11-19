@@ -1,0 +1,31 @@
+[package]
+name = "aven-agent-controller"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+build = false
+
+[features]
+default = []
+provider-transport = [
+    "dep:aven-agent-provider-transport",
+    "dep:aven-decision",
+    "aven-agent-provider-transport/provider-transport",
+]
+probe-harness = [
+    "provider-transport",
+    "aven-agent-provider-transport/probe-harness",
+]
+
+[dependencies]
+thiserror.workspace = true
+tokio = { workspace = true, features = ["time"] }
+aven-agentic.workspace = true
+aven-decision = { workspace = true, optional = true }
+aven-agent-model-catalog.workspace = true
+aven-agent-provider-transport = { workspace = true, optional = true }
+aven-agent-runtime.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
