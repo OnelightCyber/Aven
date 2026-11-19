@@ -6,13 +6,15 @@
 
 **A fast, private browser for Windows, with a workspace where agents work in front of you.**
 
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20installer-0078d4?logo=windows&logoColor=white)](https://github.com/OnelightCyber/Aven/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/OnelightCyber/Aven?label=release&color=22c55e)](https://github.com/OnelightCyber/Aven/releases/latest)
 [![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-3b82f6)](LICENSE)
 ![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4)
 ![Rust](https://img.shields.io/badge/core-Rust-dea584)
 ![Tauri 2](https://img.shields.io/badge/shell-Tauri%202-24c8db)
 ![Svelte 5](https://img.shields.io/badge/interface-Svelte%205-ff3e00)
 
-[Features](#features) · [Privacy](#privacy) · [Build](#build-from-source) · [Docs](#documentation) · [Contributing](#contributing)
+[Download](https://github.com/OnelightCyber/Aven/releases/latest) · [See it](#see-it) · [Features](#features) · [Privacy](#privacy) · [Build](#build-from-source) · [Docs](#documentation) · [Contributing](#contributing)
 
 </div>
 
@@ -23,6 +25,12 @@ and trackers blocked from the first launch, a password vault that stays on
 your machine, and a game mode that hands the processor back to your game. It
 has no account, no server of its own, and nothing to sign in to.
 
+<p align="center">
+  <img src="assets/readme/auto-mode.gif" width="880" alt="Ask Aven in Auto mode: asked how tall the Eiffel Tower is, it searches the web, rejects Google's cookie prompt by itself with its pointer, and answers with its sources." />
+  <br />
+  <sub><b>Auto mode.</b> Give Ask Aven a mission: it searches, reads and clicks on its own, refuses the cookie prompt in its way, and answers with its sources.</sub>
+</p>
+
 > [!NOTE]
 > Download `Aven-Windows-x64-setup.exe` from the
 > [latest release](https://github.com/OnelightCyber/Aven/releases/latest),
@@ -30,6 +38,42 @@ has no account, no server of its own, and nothing to sign in to.
 > code-signed yet, so Windows SmartScreen may name an unknown publisher:
 > choose **More info**, then **Run anyway**, after checking the file against
 > the release's `SHA256SUMS`.
+
+## See it
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="assets/readme/browse.gif" alt="Typing addresses in Aven, tabs down the side, switching tabs, and moving between the light and dark themes." />
+<br />
+<sub><b>A calm browser.</b> Tabs down the side, ads and trackers blocked from the first launch, light and dark.</sub>
+</td>
+<td width="50%" valign="top">
+<img src="assets/readme/agent-consent.gif" alt="An agent outside Aven asks to type into Wikipedia's search box; the request appears in the sidebar, is allowed, and Aven's pointer types and searches." />
+<br />
+<sub><b>Agents act only with your yes.</b> An agent on your computer asks in the sidebar before it presses or types; you see its pointer and can stop it.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<img src="assets/readme/game-mode.png" alt="Aven's task manager with game mode on: Aven is stepping back, one tab awake and three asleep." />
+<br />
+<sub><b>Game mode.</b> When a game fills the screen, hidden tabs sleep and Aven steps back to below-normal priority.</sub>
+</td>
+<td width="50%" valign="top">
+
+**Download** the installer from the
+[latest release](https://github.com/OnelightCyber/Aven/releases/latest).
+Aven updates itself, each update checked against the signing key built into
+the app.
+
+**No account, no server.** Your vault, history and settings stay on this
+computer; AI runs on your own keys, your Claude Code subscription or a local
+model.
+
+</td>
+</tr>
+</table>
 
 ## Features
 
