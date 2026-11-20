@@ -2792,15 +2792,30 @@ mod tests {
     use super::*;
 
     /// Beta authority bytes as the previous extension stack derived them, so
-    /// its shipped v19/v20 constraints stay exercised.
+    /// its shipped v19/v20 constraints stay exercised. Recorded rather than
+    /// derived: they are the immutable values those constraints name, and
+    /// renaming the product does not rename them.
     fn beta_authority(channel: &str, target: &str) -> [u8; 32] {
-        use sha2::{Digest, Sha256};
-        let mut hash = Sha256::new();
-        hash.update(b"aven:beta-source-authority:v1\0");
-        hash.update(channel.as_bytes());
-        hash.update(b"\0");
-        hash.update(target.as_bytes());
-        hash.finalize().into()
+        let hex = match (channel, target) {
+            ("stable", "macos.wkwebextension.v1") => {
+                "e3da979db873ec00b4f1b8be4496b5428f961db187b5c4588f3d5b30d60426da"
+            }
+            ("staging", "macos.wkwebextension.v1") => {
+                "4e86c0e24ae61e3cc7078300975eaff4a296bcf1192df0285140e21715fc9239"
+            }
+            ("stable", "windows.webview2.v1") => {
+                "9378c48279f1efef79cd8fb2a8c0227214e13961084dd2c5f64585248c3d1368"
+            }
+            ("staging", "windows.webview2.v1") => {
+                "b8d3da2d3adb78aaa3a4c44ae0402664bd6e9a2600de328b192bd7116076a71e"
+            }
+            _ => panic!("no recorded beta authority for {channel} {target}"),
+        };
+        let mut bytes = [0; 32];
+        for (index, byte) in bytes.iter_mut().enumerate() {
+            *byte = u8::from_str_radix(&hex[index * 2..index * 2 + 2], 16).unwrap();
+        }
+        bytes
     }
 
     /// Fingerprint of the schema each shipped version produces.
@@ -2842,6 +2857,10 @@ mod tests {
         (27, 0x6c555aa33142ef81),
         (28, 0xdce79131820ba8c9),
     ];
+    // Aven's databases were made with profile migration 7 as it reads now: its
+    // comment names the userscript source digest under Aven's own domain
+    // string. Versions 7 onwards are recorded from that text, which is what
+    // every Aven release has shipped; the schema itself did not change.
     const PROFILE_SCHEMA_FINGERPRINTS: &[(i64, u64)] = &[
         (1, 0x10b8_b7a3_094f_23d7),
         (2, 0xd36a_6ccd_26cd_8ab3),
@@ -2849,41 +2868,41 @@ mod tests {
         (4, 0xfa38_77ec_ded0_391e),
         (5, 0xfa38_77ec_ded0_391e),
         (6, 0x6133_6034_2097_64ef),
-        (7, 0xc545_b0e1_65b2_9c87),
-        (8, 0x441d_75af_3edb_d1fb),
-        (9, 0x52da_c9e7_ce8a_4d9b),
-        (10, 0x163b_4df0_050f_285e),
-        (11, 0x1831_eb77_6cbd_8ea1),
-        (12, 0x0d0b_cc00_2fd0_8fc9),
-        (13, 0x128f_f07d_8b37_6bc9),
-        (14, 0x0bb9_e89a_39c2_fb9f),
-        (15, 0x2f78_2c71_a646_acaf),
-        (16, 0x119a_472e_4564_25df),
-        (17, 0x8b55_d4bb_445e_7756),
-        (18, 0xa412_5523_e2ac_aef7),
-        (19, 0x321a_2e79_d8d2_77da),
-        (20, 0x4b37_b9cf_91e8_b507),
-        (21, 0x3483_1796_92c9_33a6),
-        (22, 0xd5d5_eec8_ddc1_ca18),
-        (23, 0xfa14_edb0_3a39_f586),
-        (24, 0x7f905292c3b461b8),
-        (25, 0x030c3ec9027a4538),
-        (26, 0xb9c104121d4d71db),
-        (27, 0x6289d36e7af61775),
-        (28, 0xa326a261b19a6901),
-        (29, 0xf08b7bd4e9b17709),
-        (30, 0x6f827893a13c3ccb),
-        (31, 0x55b58f4944aa33b6),
-        (32, 0x6323d1c7efd84e2c),
-        (33, 0x101002bc7ceb482a),
-        (34, 0x1a93a832df64a4a1),
-        (35, 0x3c4c67becd54e02a),
-        (36, 0xa35d00504cb31a89),
-        (37, 0xf0c5b1fc2e38c27c),
-        (38, 0xdd557da59b6d8285),
-        (39, 0xd1ea23938fb85e46),
-        (40, 0x7ff9aa66128d00ab),
-        (41, 0x98234ca2f9d7e6bb),
+        (7, 0x4097_56fa_157b_2cb7),
+        (8, 0x7c57_343c_9bc7_c063),
+        (9, 0x6df7_23c8_f819_b603),
+        (10, 0x9a43_c192_1411_85ac),
+        (11, 0x2469_a93b_485d_44e9),
+        (12, 0xef7d_57f7_b81e_9c91),
+        (13, 0xec5e_78bd_336c_e3a7),
+        (14, 0xa737_a161_0870_66cf),
+        (15, 0xbb97_630a_5050_6941),
+        (16, 0x26da_71ae_c69d_a811),
+        (17, 0x5b8d_6b32_e811_ebfe),
+        (18, 0x6d6e_747d_1d94_eaa9),
+        (19, 0x64e2_4c21_dafd_12fa),
+        (20, 0xf8b6_480e_d6fc_2c35),
+        (21, 0x7f6a_6388_2dd1_b72e),
+        (22, 0x6517_9868_e586_2976),
+        (23, 0xe990_d72a_24bc_31bc),
+        (24, 0x0dd4_1228_abba_7916),
+        (25, 0x2eed_9079_fbad_69e8),
+        (26, 0x4eb3_194b_9ceb_a72b),
+        (27, 0xa90c_1c1f_85b1_7725),
+        (28, 0x08e3_d991_a421_0111),
+        (29, 0xece7_2d0c_e983_8741),
+        (30, 0xac20_0b1d_0d19_1c63),
+        (31, 0x89c7_e837_3ca8_488c),
+        (32, 0x4c16_0c7c_99e8_22fc),
+        (33, 0xeaa7_35de_653b_324a),
+        (34, 0x399c_9432_0183_0faf),
+        (35, 0xc5b2_0e7e_ad25_4564),
+        (36, 0xe17b_fd43_486d_aad9),
+        (37, 0xfb01_9495_bc93_6dfe),
+        (38, 0x3f66_55de_05ee_a5ed),
+        (39, 0x91a2_0321_2b0b_9688),
+        (40, 0xeba5_bf41_4351_af6b),
+        (41, 0x1e6c_1b43_e721_315b),
     ];
 
     #[test]
