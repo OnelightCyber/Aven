@@ -15,9 +15,15 @@ describe("versions", () => {
   });
 
   it("links a version's entry on the site's changelog", () => {
-    expect(releaseNotesUrl("1.0.3")).toBe("https://github.com/OnelightCyber/Aven/blob/main/CHANGELOG.md#v1-0-3");
-    expect(releaseNotesUrl("1.0.0-beta.2")).toBe("https://github.com/OnelightCyber/Aven/blob/main/CHANGELOG.md#v1-0-0-beta-2");
-    expect(releaseNotesUrl("1.0.0+7")).toBe("https://github.com/OnelightCyber/Aven/blob/main/CHANGELOG.md#v1-0-0");
+    expect(releaseNotesUrl("1.0.3")).toBe(
+      "https://github.com/OnelightCyber/Aven/blob/main/CHANGELOG.md#v1-0-3",
+    );
+    expect(releaseNotesUrl("1.0.0-beta.2")).toBe(
+      "https://github.com/OnelightCyber/Aven/blob/main/CHANGELOG.md#v1-0-0-beta-2",
+    );
+    expect(releaseNotesUrl("1.0.0+7")).toBe(
+      "https://github.com/OnelightCyber/Aven/blob/main/CHANGELOG.md#v1-0-0",
+    );
   });
 
   it("surfaces only platform updates a person can install", () => {
