@@ -980,9 +980,10 @@ every panel, menu and settings page in light and dark raised no error.
 The 1.0.5 installer was published on 19 November by the maintainer's
 decision while Microsoft's announced WebView2 fix was still outstanding:
 the release check in `xtask` refuses it, and it was built outside that
-check. WebView2's Evergreen runtime updates itself through Windows,
-independently of Aven; the next release raises the floor to the fixed
-runtime once Microsoft ships it.
+check. 1.0.6 followed on 20 November in the same state, with no change to
+the engine. WebView2's Evergreen runtime updates itself through Windows,
+independently of Aven; a release raises the floor to the fixed runtime once
+Microsoft ships it.
 
 Not established: the component tests, which need a Playwright browser that
 was not installed on this machine; the private-window vault refusal and the
