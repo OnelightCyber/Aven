@@ -6,6 +6,23 @@ Notable changes to Aven. The format follows
 
 ## Unreleased
 
+## 1.0.6 - 2026-11-20
+
+### Changed
+
+- The installer and the program's file properties name Aven alone. Where
+  the code comes from stays in [NOTICE.md](NOTICE.md).
+- The interface does less work each time something changes. Reduced motion
+  and game mode cost nothing while they are off, the name on the new tab is
+  one shape instead of several hundred, and opening a panel, a tab or a
+  settings page no longer has styles checked again across the whole window.
+
+### Fixed
+
+- The repository's own checks pass again: tests still held values from
+  before the code was renamed, and the page reader's boundary check did not
+  know the two recipes of the agent's pointer.
+
 ## 1.0.5 - 2026-11-19
 
 ### Changed
