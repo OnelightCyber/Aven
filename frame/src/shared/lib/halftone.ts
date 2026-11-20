@@ -31,6 +31,24 @@ export function nameDots(...box: Parameters<typeof nameDotsFresh>) {
   return dots;
 }
 
+/** Two decimals: a hundredth of a pixel is below what any screen shows. */
+const short = (value: number) => String(Math.round(value * 100) / 100);
+
+/**
+ * The dots as one path, each a circle drawn as two arcs in the same turning
+ * sense, so dots that touch stay filled. One element where there were
+ * hundreds: the page styles, lays out and paints one shape, and a `<use>` of
+ * it copies one.
+ */
+export function dotsPath(dots: readonly NameDot[]): string {
+  let path = "";
+  for (const [x, y, r] of dots) {
+    if (!(r > 0)) continue;
+    path += `M${short(x - r)} ${short(y)}a${short(r)} ${short(r)} 0 1 0 ${short(2 * r)} 0a${short(r)} ${short(r)} 0 1 0 ${short(-2 * r)} 0Z`;
+  }
+  return path;
+}
+
 function nameDotsFresh(width: number, height: number, pitch = NAME_PITCH): NameDot[] {
   if (typeof document === "undefined" || width <= 0 || height <= 0 || pitch <= 0) return [];
   const fine = 4;
