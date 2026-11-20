@@ -68,7 +68,7 @@
     "active": true,
     "targets": "all",
     "publisher": "Aven",
-    "copyright": "Copyright © 2026 Aven contributors. Based on Zephium (MPL-2.0)",
+    "copyright": "Copyright © 2026 Aven contributors",
     "category": "Productivity",
     "shortDescription": "A fast, private browser with a built-in place to get work done.",
     "homepage": "https://github.com/OnelightCyber/Aven",
