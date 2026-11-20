@@ -82,6 +82,7 @@
   import { windowMaximized } from "$shared/lib/maximized.svelte";
   import WindowCaption from "$shared/ui/WindowCaption";
   import { gameMode } from "$shared/lib/resources.svelte";
+  import { holdStill } from "$shared/lib/still-sheet";
   import { installChromeMenu } from "$shared/lib/chrome-menu";
   import { tabs } from "$domain/tabs";
   import { preferences } from "$domain/preferences";
@@ -227,6 +228,11 @@
     pendingSplit = null;
     if (splitting) finishSplit();
   }
+
+  // While a game fills the screen the chrome holds still: every animation
+  // jumps to its end, so nothing runs behind the game and nothing is left
+  // halfway. The rules are attached only then (see still-sheet).
+  $effect(() => holdStill("game", gameMode()));
 
   // Streamer mode marks the whole document, menus drawn outside the shell
   // included: the stylesheet blurs what is marked private.
@@ -497,7 +503,6 @@
   class:pb-0={inWork}
   data-caption={IS_WINDOWS || undefined}
   data-window-fullscreen={(IS_WINDOWS && fullscreen()) || undefined}
-  data-game={gameMode() || undefined}
   data-aven-active-tab={tabs.activeId() ?? ""}
   data-aven-surface={browserPage.currentPage() ?? "browse"}
   data-private={incognito || undefined}
@@ -873,19 +878,6 @@
      8px gutter is part of that room. */
   .shell[data-caption] .stage-column {
     padding-top: 28px;
-  }
-
-  /* While a game fills the screen the chrome holds still: every animation
-     jumps to its end, so nothing runs behind the game and nothing is left
-     halfway (pausing froze entrances at their first, invisible frame). */
-  .shell[data-game] :global(*),
-  .shell[data-game] :global(*::before),
-  .shell[data-game] :global(*::after) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0s !important;
-    transition-delay: 0s !important;
   }
 
   /* F11 on Windows: the page alone, edge to edge, as in other browsers. */
