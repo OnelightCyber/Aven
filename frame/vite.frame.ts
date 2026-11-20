@@ -55,6 +55,13 @@ export function frameConfig(pages: readonly Page[]): UserConfig {
     build: {
       emptyOutDir: !later,
       target: "es2022",
+      // The interface only ever runs in the system web view: WebView2, whose
+      // oldest admitted runtime is Chromium 157, and WebKit on macOS. Aimed at
+      // older browsers, the minifier wrapped every selector list holding a
+      // :has() in a forgiving :is(), which Chromium cannot sort by class and
+      // so tries against every element on every style recalculation, and it
+      // added fallbacks no runtime here needs.
+      cssTarget: ["chrome130", "safari16.4"],
       // Bundled assets have no network latency. Eagerly preloading the whole
       // module graph can overflow the native protocol's 32-request admission
       // limit before the main stylesheet loads. Native module imports schedule
