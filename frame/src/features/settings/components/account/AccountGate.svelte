@@ -43,14 +43,7 @@
       />{/if}
   </div>
   <div class="stage">
-    <img
-      class="mark"
-      src="/aven-icon@2x.png"
-      width="64"
-      height="64"
-      alt="Aven"
-      draggable="false"
-    />
+    <img class="mark" src="/aven-icon@2x.png" width="64" height="64" alt="Aven" draggable="false" />
     {@render children()}
   </div>
   {#if foot}<div class="foot">{@render foot()}</div>{/if}
