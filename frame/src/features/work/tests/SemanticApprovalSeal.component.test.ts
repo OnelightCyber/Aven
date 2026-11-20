@@ -171,8 +171,7 @@ test("real document replacement cannot reuse an original private approval", asyn
     new Promise<void>((done) => frame.addEventListener("load", () => done(), { once: true }));
   type Api = { invoke(input: string): string | Promise<string> };
   const api = () =>
-    (frame.contentWindow as unknown as { __avenSemanticRuntimeV1: Api })
-      .__avenSemanticRuntimeV1;
+    (frame.contentWindow as unknown as { __avenSemanticRuntimeV1: Api }).__avenSemanticRuntimeV1;
   const capture = async () =>
     JSON.parse(
       await api().invoke(
