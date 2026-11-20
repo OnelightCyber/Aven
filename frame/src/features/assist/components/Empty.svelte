@@ -255,7 +255,8 @@
     }
   }
 
-  :global(:root[data-reduce-motion="true"]) :is(.row, .go) {
+  :global(:root[data-reduce-motion="true"]) .row,
+  :global(:root[data-reduce-motion="true"]) .go {
     transition: none;
   }
 </style>
