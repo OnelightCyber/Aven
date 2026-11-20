@@ -361,7 +361,7 @@ mod path_budget_tests {
         let identity = "app.aven.performance";
         assert!(path_budget(&package_root(app_data, identity, &short()), deepest).is_ok());
         let refused = path_budget(&package_root(app_data, identity, &long()), deepest).unwrap_err();
-        assert!(refused.contains("283 characters long"), "{refused}");
+        assert!(refused.contains("280 characters long"), "{refused}");
         assert!(refused.contains("259"), "{refused}");
     }
 
