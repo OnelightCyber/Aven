@@ -1,3 +1,4 @@
+import { holdStill } from "$shared/lib/still-sheet";
 import { commands } from "$shared/ipc/bindings";
 import { events } from "$shared/ipc/native-events";
 
@@ -43,6 +44,7 @@ export function applyUiPreferences(tint: string, reduceMotion: boolean) {
 
 export function setReducedMotion(reduceMotion: boolean) {
   document.documentElement.setAttribute("data-reduce-motion", String(reduceMotion));
+  holdStill("motion", reduceMotion);
 }
 
 let customization: Customization | null = null;
