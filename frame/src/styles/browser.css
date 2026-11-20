@@ -949,7 +949,8 @@
     animation: none;
   }
 }
-:root[data-reduce-motion="true"] :is(.sidebar-sheet, .sidebar-tool-panel) {
+:root[data-reduce-motion="true"] .sidebar-sheet,
+:root[data-reduce-motion="true"] .sidebar-tool-panel {
   animation: none;
 }
 
@@ -1012,8 +1013,11 @@
   user-select: none;
 }
 
-/* A hidden column is out of the row, so the page's own inset from it goes. */
-.shell:has(> .browser-sidebar:is([data-hidden], [data-leaving])) .stage-column > main,
-.shell:has(> .browser-sidebar:is([data-hidden], [data-leaving])) .internal-stage {
+/* A hidden column is out of the row, so the page's own inset from it goes.
+   Read from the column, the stage's earlier sibling, rather than through
+   .shell:has(...), which had the shell's style scheduled again for changes
+   anywhere inside it, such as each settings section drawn. */
+.browser-sidebar:is([data-hidden], [data-leaving]) ~ .stage-column > main,
+.browser-sidebar:is([data-hidden], [data-leaving]) ~ .stage-column .internal-stage {
   padding-inline-start: 0;
 }
