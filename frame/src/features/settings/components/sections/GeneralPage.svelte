@@ -31,8 +31,8 @@
 
 <div class="settings-callout" data-setting="general.default">
   <span class="settings-callout-icon" data-brand
-    ><img src="/aven-icon.png" alt="" />{#if status?.is_default}<span
-        class="settings-callout-badge"><Icon icon={Tick02Icon} size={12} /></span
+    ><img src="/aven-icon.png" alt="" />{#if status?.is_default}<span class="settings-callout-badge"
+        ><Icon icon={Tick02Icon} size={12} /></span
       >{/if}</span
   >
   <div>
