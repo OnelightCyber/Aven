@@ -126,8 +126,7 @@
   // column and it move as one instead: the column pushed out as the new tab
   // takes its room, or drawn back in as it gives it up.
   let leaving = $state<DOMRect | null>(null);
-  const beside = () =>
-    document.querySelector<HTMLElement>("[data-aven-new-tab], .internal-stage");
+  const beside = () => document.querySelector<HTMLElement>("[data-aven-new-tab], .internal-stage");
   const pushTiming = () => ({
     duration: duration("page"),
     easing:
