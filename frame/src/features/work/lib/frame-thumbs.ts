@@ -9,8 +9,7 @@ import { commands } from "$shared/ipc/bindings";
  */
 const BUDGET = 16 * 1024 * 1024;
 const MEDIA = /^(?:aven-media:\/\/localhost|http:\/\/aven-media\.localhost(?::\d+)?)\//u;
-const FRAME =
-  /^(?:aven-media:\/\/localhost|http:\/\/aven-media\.localhost(?::\d+)?)\/frame\//u;
+const FRAME = /^(?:aven-media:\/\/localhost|http:\/\/aven-media\.localhost(?::\d+)?)\/frame\//u;
 
 /** A picture's address asking for the copy `width` CSS pixels wide, as sharp as the screen shows it. */
 export function thumbSrc(url: string, width: number): string {
