@@ -82,8 +82,7 @@ async function fixture() {
   document.body.append(frame);
   await loaded;
   const win = frame.contentWindow!;
-  const api = (win as unknown as { __aven_content_style_v1__: StyleApi })
-    .__aven_content_style_v1__;
+  const api = (win as unknown as { __aven_content_style_v1__: StyleApi }).__aven_content_style_v1__;
   const { token, url } = api.inspect();
   const index = JSON.stringify([
     [".ad", [".ad"]],
