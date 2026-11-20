@@ -168,7 +168,19 @@ fn check_recipes(source: &str) -> Result<(), String> {
             return Err(format!("the recipes lost {required}"));
         }
     }
-    if compact.matches("\"Q1:").count() != 13 {
+    // The agent's pointer: it finds its target as a mark does, and its
+    // caption is drawn as text, never markup, at most 80 characters.
+    for required in [
+        "if(encoded.startsWith(\"Q1:point:\"))returnpointAt(encoded.slice(9));",
+        "if(encoded===\"Q1:rest\")returnrest();",
+        "consttarget=doc.body?findTarget(entry,index):null;",
+        "if(pill)pill.textContent=request.w.slice(0,80);",
+    ] {
+        if !compact.contains(required) {
+            return Err(format!("the recipes lost {required}"));
+        }
+    }
+    if compact.matches("\"Q1:").count() != 15 {
         return Err("the recipes gained an invocation".to_owned());
     }
     for forbidden in PAGE_FORBIDDEN
@@ -249,7 +261,7 @@ fn check_recipe_grammar(source: &str) -> Result<(), String> {
         "encoded:format!(\"{MARK_PREFIX}{json}\"),",
         "Kind::Selection=>MAX_SELECTION_WIRE_BYTES,",
         "Kind::Outline=>MAX_OUTLINE_WIRE_BYTES,",
-        "Kind::Mark|Kind::Touched|Kind::Short=>1,",
+        "Kind::Mark|Kind::Touched|Kind::Short|Kind::Point=>1,",
         "Kind::Pick=>MAX_PICK_WIRE_BYTES,",
         // Marks carry only facts Rust serialised from its own read.
         "letjson=serde_json::to_string(&serde_json::json!({\"r\":reduce_motion,\"m\":entries})).ok()?;",
@@ -262,7 +274,16 @@ fn check_recipe_grammar(source: &str) -> Result<(), String> {
     if !compact.contains("constTOUCHED:&str=\"Q1:touched\";") {
         return Err("the recipe grammar lost the person's-input recipe".to_owned());
     }
-    if compact.matches("Self{kind:Kind::").count() != 13 {
+    for required in [
+        "constPOINT_PREFIX:&str=\"Q1:point:\";",
+        "constREST:&str=\"Q1:rest\";",
+        "letcaption:String=caption.chars().take(80).collect();",
+    ] {
+        if !compact.contains(required) {
+            return Err(format!("the recipe grammar lost {required}"));
+        }
+    }
+    if compact.matches("Self{kind:Kind::").count() != 15 {
         return Err("the recipe grammar gained an invocation".to_owned());
     }
     Ok(())
@@ -636,6 +657,12 @@ mod tests {
         let recipes = read(&repository, RECIPES).expect("recipes");
         assert!(check_recipes(&recipes).is_ok());
         assert!(check_recipes(&format!("{recipes}\nfetch(\"x\")")).is_err());
+        assert!(check_recipes(&recipes.replace(
+            "pill.textContent = request.w",
+            "pill.innerHTML = request.w"
+        ))
+        .is_err());
+        assert!(check_recipes(&format!("{recipes}\n\"Q1:extra\"")).is_err());
         let reader = read(&repository, MACOS_READER).expect("reader");
         assert!(check_macos_reader(&reader).is_ok());
         assert!(
