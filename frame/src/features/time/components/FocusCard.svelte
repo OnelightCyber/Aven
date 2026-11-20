@@ -366,7 +366,8 @@
     }
   }
 
-  :global(:root[data-reduce-motion="true"]) :is(.live, .editor) {
+  :global(:root[data-reduce-motion="true"]) .live,
+  :global(:root[data-reduce-motion="true"]) .editor {
     animation: none;
   }
 </style>
