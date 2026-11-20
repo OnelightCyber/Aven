@@ -1,3 +1,7 @@
+<script lang="ts" module>
+  let shown = 0;
+</script>
+
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { onDestroy } from "svelte";
@@ -24,6 +28,16 @@
   const restore = beside ? () => {} : expandBriefly();
   onDestroy(restore);
 
+  // The column steps back while a prompt is up. Said by an attribute on the
+  // body rather than read back by body:has(.prompt-sheet), which made every
+  // change anywhere restyle the whole document.
+  shown += 1;
+  document.body.dataset.promptSheet = "";
+  onDestroy(() => {
+    shown -= 1;
+    if (shown === 0) delete document.body.dataset.promptSheet;
+  });
+
   const left = beside ? COMPACT_WIDTH + INSET : INSET;
 </script>
 
@@ -43,7 +57,7 @@
   /* As under the column's own menus, what the prompt lies over steps back
      and holds still; a veil would stop at the column's edge, short of the
      page and the window's frame. */
-  :global(body:has(.prompt-sheet) .sidebar-browser-column > *) {
+  :global(body[data-prompt-sheet] .sidebar-browser-column > *) {
     opacity: 0.18;
     pointer-events: none;
     transition: opacity var(--motion-base) var(--ease-out);
