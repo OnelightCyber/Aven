@@ -22,7 +22,7 @@
   import { focus, localDay } from "$domain/time";
   import { groundPath, notchShape, notchWidth } from "../lib/ground";
   import { layout, type Box } from "../lib/layout";
-  import { nameDots } from "$shared/lib/halftone";
+  import { dotsPath, nameDots } from "$shared/lib/halftone";
   import { chosenProfileName } from "$shared/lib/display-names";
   import { reducedMotion } from "$shared/lib/motion";
   import {
@@ -271,7 +271,7 @@
   let lip = $derived(notchShape(width, height, page.notch));
   let fieldWidth = $derived(notchWidth(width, page.notch));
   // The name as the sky's own dots, the way it forms at the first launch.
-  let nameScreen = $derived(nameDots(page.mark.w, page.mark.h));
+  let nameScreen = $derived(dotsPath(nameDots(page.mark.w, page.mark.h)));
   // One pass of light across the name as the first sky arrives, then
   // stillness: driven by the document, nothing left running once it passes.
   const glint = arriving && !reducedMotion();
@@ -404,9 +404,7 @@
   <!-- The name, drawn only as large as itself. -->
   {#if showWordmark}<svg class="mark" role="img" aria-label="Aven" style={at(page.mark)}>
       <defs>
-        <g id={`${id}-letters`}
-          >{#each nameScreen as [cx, cy, r], index (index)}<circle {cx} {cy} {r} />{/each}</g
-        >
+        <path id={`${id}-letters`} d={nameScreen} />
         {#if glint && useSky}<linearGradient
             id={`${id}-glint`}
             gradientUnits="userSpaceOnUse"
@@ -815,10 +813,6 @@
     transition: opacity var(--motion-base) var(--ease-out);
   }
 
-  .newtab:has(:global(.dock[data-open="true"])) :is(.mark, .greeting, .when) {
-    opacity: 0;
-  }
-
   .figure {
     display: flex;
     align-items: center;
@@ -997,13 +991,26 @@
     }
   }
 
-  :global(:root[data-reduce-motion="true"])
-    :is(.figure, .entering .page, .entering .mark, .entering .greeting, .entering .when) {
+  :global(:root[data-reduce-motion="true"]) .figure,
+  :global(:root[data-reduce-motion="true"]) .entering .page,
+  :global(:root[data-reduce-motion="true"]) .entering .mark,
+  :global(:root[data-reduce-motion="true"]) .entering .greeting,
+  :global(:root[data-reduce-motion="true"]) .entering .when {
     animation: none;
   }
 
-  :global(:root[data-reduce-motion="true"])
-    :is(.arriving .sky, .arriving .mark, .arriving .control, .figures) {
+  :global(:root[data-reduce-motion="true"]) .arriving .sky,
+  :global(:root[data-reduce-motion="true"]) .arriving .mark,
+  :global(:root[data-reduce-motion="true"]) .arriving .control,
+  :global(:root[data-reduce-motion="true"]) .figures {
     transition: none;
+  }
+
+  /* Written out rather than as :is(...), which would be tried on every
+     element of the page; each of these only on its own class. */
+  .newtab:has(:global(.dock[data-open="true"])) .mark,
+  .newtab:has(:global(.dock[data-open="true"])) .greeting,
+  .newtab:has(:global(.dock[data-open="true"])) .when {
+    opacity: 0;
   }
 </style>
