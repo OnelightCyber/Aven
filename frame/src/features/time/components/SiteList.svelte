@@ -209,7 +209,8 @@
     }
   }
 
-  :global(:root[data-reduce-motion="true"]) :is(li, .fill) {
+  :global(:root[data-reduce-motion="true"]) li,
+  :global(:root[data-reduce-motion="true"]) .fill {
     animation: none;
     transition: none;
   }
