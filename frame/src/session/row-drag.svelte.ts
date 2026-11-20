@@ -38,9 +38,7 @@ function placeBefore(over: Element | null, x: number, y: number, dragged: string
   const sideways = !!over?.closest("[data-essentials-drop]");
   const after = sideways ? x > rect.left + rect.width / 2 : y > rect.top + rect.height / 2;
   if (!after && row.dataset.avenTabId !== dragged) return row.dataset.avenTabId ?? null;
-  const rows = [
-    ...(row.closest("ul")?.querySelectorAll<HTMLElement>("[data-aven-tab-id]") ?? []),
-  ];
+  const rows = [...(row.closest("ul")?.querySelectorAll<HTMLElement>("[data-aven-tab-id]") ?? [])];
   const next = rows
     .slice(rows.indexOf(row) + 1)
     .find((candidate) => candidate.dataset.avenTabId !== dragged);
