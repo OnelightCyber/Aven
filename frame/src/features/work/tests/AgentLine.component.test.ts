@@ -706,9 +706,7 @@ test("aven still confirming earlier requests asks for a moment and offers a plai
   const screen = await render(AgentLine, { session });
   await expect
     .element(
-      screen.getByText(
-        "Aven AI is still confirming your earlier requests. Try again in a moment.",
-      ),
+      screen.getByText("Aven AI is still confirming your earlier requests. Try again in a moment."),
     )
     .toBeVisible();
   await expect
