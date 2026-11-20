@@ -2,6 +2,7 @@ import "$styles/global.css";
 import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-svelte";
 import { page, userEvent } from "vitest/browser";
+import { theme } from "$domain/appearance";
 import type { AccountReplyV1, AccountV1 } from "$shared/ipc/bindings";
 import { accountFixture as account } from "$shared/testing/account";
 import AccountPage from "../components/sections/AccountPage.svelte";
@@ -138,7 +139,7 @@ test("the steps trade by opacity and a slide, and by nothing when motion is redu
 
   // The global switch takes the durations; this takes the wait before a
   // step is hidden.
-  document.documentElement.dataset.reduceMotion = "true";
+  theme.setReducedMotion(true);
   try {
     const durations = getComputedStyle(waits).transitionDuration.split(",");
     expect(durations.every((duration) => Number.parseFloat(duration) < 0.001)).toBe(true);
@@ -148,6 +149,7 @@ test("the steps trade by opacity and a slide, and by nothing when motion is redu
         .every((d) => d.trim() === "0s"),
     ).toBe(true);
   } finally {
+    theme.setReducedMotion(false);
     delete document.documentElement.dataset.reduceMotion;
   }
 });
