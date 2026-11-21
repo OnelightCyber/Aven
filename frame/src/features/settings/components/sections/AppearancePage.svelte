@@ -6,6 +6,7 @@
   import ThemeGallery from "../appearance/ThemeGallery.svelte";
   import ThemeColors from "../appearance/ThemeColors.svelte";
   import FontPicker from "../appearance/FontPicker.svelte";
+  import Setups from "../appearance/Setups.svelte";
   import { createThemeEditor } from "../../lib/theme-editor.svelte";
   import { codeFonts, installedCodeFonts } from "../../lib/code-fonts";
   import * as m from "$shared/i18n/messages";
@@ -216,6 +217,10 @@
       onchange={(v) => void preferences.set("ui.code-font", v)}
     />
   </SettingsRow>
+</SettingsGroup>
+
+<SettingsGroup title={m.setups_title()} description={m.setups_help()}>
+  <Setups />
 </SettingsGroup>
 
 <SettingsGroup title={m.settings_zoom()}>
