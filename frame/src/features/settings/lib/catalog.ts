@@ -80,6 +80,12 @@ export const fields = {
     description: m.settings_reduce_motion_desc,
     initial: false,
   },
+  "appearance.launch-animation": {
+    section: "appearance",
+    label: m.pref_launch_animation,
+    description: m.pref_launch_animation_help,
+    initial: true,
+  },
   "appearance.force-dark": {
     section: "appearance",
     label: m.pref_force_dark,
