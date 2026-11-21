@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const native = vi.hoisted(() => ({
   get: vi.fn(),
+  snapshot: vi.fn(),
   shortcuts: vi.fn(),
   set: vi.fn(),
   settle: vi.fn(),
@@ -12,6 +13,7 @@ vi.mock("$shared/ipc/bindings", async () => {
   const { mockBindings } = await import("$shared/testing/bindings");
   return mockBindings({
     settingGet: native.get,
+    settingsSnapshot: native.snapshot,
     settingSet: native.set,
     searchShortcutDefaults: native.shortcuts,
   });
@@ -28,6 +30,11 @@ beforeEach(() => {
     return Promise.resolve(native.stop);
   });
   native.get.mockResolvedValue(null);
+  // A native without the one-call answer, unless a test gives it one: the
+  // reads below then go setting by setting.
+  native.snapshot.mockImplementation(() => {
+    throw new Error("no snapshot");
+  });
   native.shortcuts.mockResolvedValue([]);
   native.set.mockResolvedValue({ accepted: true, operation_id: "0000000000000001" });
   native.settle.mockResolvedValue({ outcome: "deferred", disposition: null });
@@ -256,4 +263,47 @@ it("resets every preference but leaves the saved setups, which the person made",
   expect(preferences.value("ui.setups")).toBe(setups);
   expect(native.set.mock.calls.map(([key]) => key)).toEqual(["ui.accent"]);
   preferences.dispose();
+});
+
+describe("one answer for every setting at startup", () => {
+  it("applies the snapshot, defaults what it leaves out, and asks for no setting alone", async () => {
+    native.snapshot.mockResolvedValue({ "ui.accent": "sky", appearance: "dark" });
+    const preferences = await import("../preferences.svelte");
+    await preferences.init();
+    expect(preferences.value("ui.accent")).toBe("sky");
+    expect(preferences.value("appearance")).toBe("dark");
+    expect(preferences.value("ui.font")).toBe("system");
+    expect(native.snapshot).toHaveBeenCalledOnce();
+    expect(native.get).not.toHaveBeenCalled();
+    expect(native.shortcuts).toHaveBeenCalledOnce();
+    // The store is ready: a change can be written.
+    native.get.mockResolvedValue("rose");
+    await preferences.set("ui.accent", "rose");
+    expect(preferences.value("ui.accent")).toBe("rose");
+    preferences.dispose();
+  });
+
+  it("keeps a live change that arrived before the snapshot did", async () => {
+    let answer: (value: Record<string, string>) => void = () => {};
+    native.snapshot.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+    const preferences = await import("../preferences.svelte");
+    const ready = preferences.init();
+    await vi.waitFor(() => expect(native.snapshot).toHaveBeenCalled());
+    native.listener?.({ payload: "preference.ui.accent=rose" });
+    answer({ "ui.accent": "sky", "ui.font": "mono" });
+    await ready;
+    expect(preferences.value("ui.accent")).toBe("rose");
+    expect(preferences.value("ui.font")).toBe("mono");
+    preferences.dispose();
+  });
+
+  it("reads each setting on its own when the snapshot is refused", async () => {
+    native.snapshot.mockRejectedValue(new Error("ipc"));
+    native.get.mockImplementation(async (key: string) => (key === "ui.accent" ? "sage" : null));
+    const preferences = await import("../preferences.svelte");
+    await preferences.init();
+    expect(preferences.value("ui.accent")).toBe("sage");
+    expect(native.get.mock.calls.length).toBeGreaterThan(50);
+    preferences.dispose();
+  });
 });
