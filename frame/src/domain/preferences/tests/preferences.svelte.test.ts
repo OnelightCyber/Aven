@@ -239,3 +239,21 @@ it("persists shortcut settings and preserves equals signs in live URL templates"
   expect(preferences.searchShortcuts()[0]?.id).toBe("custom:example");
   preferences.dispose();
 });
+
+it("resets every preference but leaves the saved setups, which the person made", async () => {
+  const setups = '[{"id":"00000000000000aa","name":"Night","settings":{"appearance":"dark"}}]';
+  const stored: Record<string, string> = { "ui.setups": setups, "ui.accent": "sky" };
+  native.get.mockImplementation(async (key: string) => stored[key] ?? null);
+  native.set.mockImplementation(async (key: string, value: string) => {
+    stored[key] = value;
+    return { accepted: true, operation_id: "0000000000000001" };
+  });
+  const preferences = await import("../preferences.svelte");
+  await preferences.init();
+  expect(preferences.value("ui.accent")).toBe("sky");
+  expect(await preferences.resetAll()).toBe(true);
+  expect(preferences.value("ui.accent")).toBe("graphite");
+  expect(preferences.value("ui.setups")).toBe(setups);
+  expect(native.set.mock.calls.map(([key]) => key)).toEqual(["ui.accent"]);
+  preferences.dispose();
+});
