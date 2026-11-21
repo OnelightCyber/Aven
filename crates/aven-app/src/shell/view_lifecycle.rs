@@ -1,7 +1,7 @@
 //! Bounded native-view residency, discard, crash, and process recovery.
 
 use super::*;
-use aven_core::ports::engine::MemoryPressure;
+use aven_core::ports::engine::{MemoryPressure, Partition};
 
 // The few most recently used hidden pages stay warm for instant switching;
 // older hidden pages sleep after the chosen idle grace, whatever the tab
@@ -99,6 +99,11 @@ pub(super) struct ResidencyState {
     pub(super) discard_protected_until: std::collections::HashMap<ItemId, std::time::Instant>,
     /// While a warm spare may be waiting, the last browsing activity.
     pub(super) spare_activity: Option<std::time::Instant>,
+    /// The person chose to save memory: nothing is kept ahead of need.
+    save_memory: bool,
+    /// The window's entrance has played: the page engine may start ahead of
+    /// the first page. Never during the launch itself.
+    pub(super) engine_ready_armed: bool,
     /// Hidden pages the person put to sleep from the task manager, until
     /// they sleep, refuse, are shown again or close.
     pub(super) sleep_asked: std::collections::HashSet<ItemId>,
@@ -138,6 +143,8 @@ impl Default for ResidencyState {
             discard_probes: std::collections::HashMap::new(),
             discard_protected_until: std::collections::HashMap::new(),
             spare_activity: None,
+            save_memory: false,
+            engine_ready_armed: false,
             sleep_asked: std::collections::HashSet::new(),
             tasks_sampled: None,
         }
@@ -172,6 +179,7 @@ impl ResidencyState {
                 self.dormant_min = self.discard_idle_min.min(DORMANT_GRACE);
             }
             "performance.memory" => {
+                self.save_memory = value == "save-memory";
                 self.preferred_limits = match value {
                     "save-memory" => (2, 12),
                     "keep-ready" => (10, 28),
@@ -238,7 +246,34 @@ impl Shell {
         if key.starts_with("performance.") {
             self.residency.apply_setting(key, value);
             self.maintain_views();
+            self.keep_engine_ready();
         }
+    }
+
+    /// Keeps the page engine of the profile in front running while it has no
+    /// page open, so the first page does not wait for it: a fresh engine
+    /// takes a few hundred milliseconds to start, and on Windows its first
+    /// request then waits about a second while the system looks for a proxy.
+    /// Not before the window's entrance has played, never for a private
+    /// window, and not when the person chose to save memory or memory is
+    /// short: the engine then stops with its last page, as it always did.
+    pub(super) fn keep_engine_ready(&mut self) {
+        if !self.residency.engine_ready_armed {
+            return;
+        }
+        let wanted =
+            !self.residency.save_memory && self.residency.memory_pressure == MemoryPressure::Normal;
+        let partition = wanted
+            .then(|| {
+                self.windows
+                    .focused()
+                    .map(|window| window.profile)
+                    .or_else(|| self.profiles.default_profile())
+            })
+            .flatten()
+            .map(|profile| self.partition_of_profile(profile))
+            .filter(|partition| !matches!(partition, Partition::Ephemeral(_)));
+        self.engine.keep_engine_ready(partition);
     }
 
     /// The engine gave up suspending a hidden page: it stays awake until it
@@ -300,6 +335,7 @@ impl Shell {
             self.engine.set_memory_pressure(pressure);
             self.residency.update_limits();
             self.maintain_views();
+            self.keep_engine_ready();
         }
     }
 
