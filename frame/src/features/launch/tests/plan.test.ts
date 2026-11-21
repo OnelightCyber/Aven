@@ -14,6 +14,12 @@ describe("launch formation", () => {
     expect(circles).toEqual(NAME_DOTS.map((dot) => [...dot]));
   });
 
+  it("brings every dot up close to its place, so the name is what is seen", () => {
+    for (const dot of plan(468).dots) {
+      expect(Math.hypot(dot.dx, dot.dy)).toBeLessThanOrEqual(18);
+    }
+  });
+
   it("lands every dot inside the name, the same way on every launch", () => {
     const width = 468;
     const first = plan(width);
@@ -34,8 +40,10 @@ describe("launch formation", () => {
     const glinted = Math.max(...dots.map((dot) => dot.glint + LAUNCH.glint));
     expect(glinted).toBeLessThanOrEqual(LAUNCH.doneAt);
     expect(LAUNCH.fadeAt + LAUNCH.fade).toBeLessThanOrEqual(LAUNCH.doneAt);
-    // The page waits at most a second after the window shows.
-    expect(LAUNCH.doneAt).toBeLessThanOrEqual(1000);
+    // The name stays whole a while before it fades, and the page waits at
+    // most a second and a half after the window shows.
+    expect(LAUNCH.fadeAt - landed).toBeGreaterThanOrEqual(400);
+    expect(LAUNCH.doneAt).toBeLessThanOrEqual(1500);
   });
 
   it("draws the name at most 468 pixels wide, less in a narrow window", () => {
