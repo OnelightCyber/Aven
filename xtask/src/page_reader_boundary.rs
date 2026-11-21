@@ -657,10 +657,9 @@ mod tests {
         let recipes = read(&repository, RECIPES).expect("recipes");
         assert!(check_recipes(&recipes).is_ok());
         assert!(check_recipes(&format!("{recipes}\nfetch(\"x\")")).is_err());
-        assert!(check_recipes(&recipes.replace(
-            "pill.textContent = request.w",
-            "pill.innerHTML = request.w"
-        ))
+        assert!(check_recipes(
+            &recipes.replace("pill.textContent = request.w", "pill.innerHTML = request.w")
+        )
         .is_err());
         assert!(check_recipes(&format!("{recipes}\n\"Q1:extra\"")).is_err());
         let reader = read(&repository, MACOS_READER).expect("reader");
