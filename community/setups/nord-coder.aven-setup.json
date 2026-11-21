@@ -1,0 +1,13 @@
+{
+  "aven_setup": 1,
+  "name": "Nord coder",
+  "settings": {
+    "appearance": "dark",
+    "tabs.close-button": "always",
+    "tabs.new-position": "after-current",
+    "ui.code-font": "jetbrains-mono",
+    "ui.font": "mono",
+    "ui.tab-layout": "vertical",
+    "ui.theme": "nord"
+  }
+}
