@@ -4249,5 +4249,5 @@
   "sync_newer": "Un altro dispositivo usa un Aven più recente. Aggiorna questo per sincronizzare.",
   "sync_busy": "Una sincronizzazione è già in corso.",
   "pref_launch_animation": "Animazione di avvio",
-  "pref_launch_animation_help": "Il nome si compone di punti all’apertura di Aven. Dura meno di un secondo e non parte mai con il movimento ridotto o in modalità gioco."
+  "pref_launch_animation_help": "All’apertura di Aven il nome si compone di punti, poi compare la finestra. Non parte mai con il movimento ridotto o in modalità gioco."
 }
