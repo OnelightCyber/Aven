@@ -484,3 +484,24 @@ fn saving_memory_or_short_memory_lets_the_engine_stop_with_its_last_page() {
     ));
     assert!(engine.engine_ready().last().unwrap().is_some());
 }
+
+#[test]
+fn a_stored_smartscreen_choice_reaches_the_engine() {
+    let (mut shell, engine, _screen) = setup();
+    shell.handle(Command::Bootstrap);
+    shell.handle(Command::SetAppSetting {
+        key: "privacy.smartscreen".into(),
+        value: "false".into(),
+    });
+    shell.handle(Command::SetAppSetting {
+        key: "privacy.smartscreen".into(),
+        value: "true".into(),
+    });
+    assert_eq!(engine.reputation_checking(), [false, true]);
+    // A value the setting refuses is not stored, and not passed on.
+    shell.handle(Command::SetAppSetting {
+        key: "privacy.smartscreen".into(),
+        value: "maybe".into(),
+    });
+    assert_eq!(engine.reputation_checking(), [false, true]);
+}
