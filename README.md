@@ -144,13 +144,18 @@ with tasks, notes and time spent per site, and Mica on Windows 11.
 
 | | |
 |---|---|
-| **Accounts** | None. Aven has no server and contacts none. |
-| **Where your data goes** | To the sites you visit and the model providers you choose, nowhere else. |
+| **Accounts** | None. Aven has no server that receives your browsing. |
+| **Where your data goes** | To the sites you visit and the model providers you choose. Microsoft Defender SmartScreen, on unless you turn it off, checks the sites you open and your downloads with Microsoft. Sync, off until you turn it on, goes through Aven's relay encrypted so the relay cannot read it. Every connection Aven makes on its own, and how to turn it off: [PRIVACY.md](PRIVACY.md). |
 | **Passwords** | Encrypted with AES-256-GCM in a file on your disk. The key stays in the Windows Credential Manager. A saved sign-in is only ever filled on the encrypted site it was saved for. |
 | **Model keys** | Kept in the system keychain, never in a file. |
 | **Updates** | Aven checks GitHub for a new release, verifies its signature with the key built into the app, and installs it at the next launch. The check can be turned off in Settings. The web engine (WebView2) updates itself. |
 
 Found a security problem? Please report it privately: see [SECURITY.md](docs/SECURITY.md).
+
+### Code signing policy
+
+How the Windows installer is signed, who approves each signature, and what is
+signed: [docs/code-signing.md](docs/code-signing.md).
 
 ## Platforms
 
