@@ -18,11 +18,11 @@ Notable changes to Aven. The format follows
   ([community/setups](community/setups/README.md)).
 - A relay for encrypted sync and for working together, as a Cloudflare
   Worker with no dependencies ([relay](relay/README.md)). It stores and
-  passes on only what it cannot read. Not deployed yet.
+  passes on only what it cannot read.
 - Sync between your devices, with no account: appearance, setups, language
   and search engine, encrypted on the device with a key derived from a code
-  you type on the other device. It is in the code and tested against the
-  relay's rules, and stays hidden until a relay is deployed.
+  you type on the other device (Settings, General). The relay never sees
+  the code, the key or anything readable.
 - A [roadmap](ROADMAP.md).
 
 ## 1.0.6 - 2026-11-20
