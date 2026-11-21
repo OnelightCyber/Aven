@@ -82,6 +82,7 @@ pub const KEYS: &[&str] = &[
     "privacy.streamer-mode",
     "privacy.streamer-auto",
     "privacy.cookie-banners-except",
+    crate::setups::SETTING,
 ];
 
 /// SmartScreen ships on. Only an explicit persisted false disables the
@@ -249,6 +250,8 @@ pub fn value_allowed(key: &str, value: &str) -> bool {
         "ui.text-size" => matches!(value, "small" | "default" | "large"),
         "ui.theme" => crate::theme::theme_allowed(value),
         "ui.theme-custom" => value.is_empty() || crate::theme::parse_custom(value).is_some(),
+        // The saved setups: each one whole, or the list is not taken.
+        crate::setups::SETTING => crate::setups::saved_allowed(value),
         "ui.window-tint" => value
             .parse::<u8>()
             .is_ok_and(|tint| tint <= 100 && value == tint.to_string()),
