@@ -2778,6 +2778,26 @@ impl Engine for WebviewEngine {
         self.run(|| host::best_effort_with(|host| host.release_spare()));
     }
 
+    fn keep_engine_ready(&self, partition: Option<Partition>) {
+        // Windows only: elsewhere a process group still ends with its last
+        // page, and nothing here is said to the host.
+        #[cfg(target_os = "windows")]
+        {
+            // A profile being retired is never kept: its group must end.
+            let active = |partition: &Partition, gate: &Arc<Mutex<RetirementGate>>| {
+                lock_retirement_gate(gate).profile_is_active(partition.profile())
+            };
+            let partition = partition.filter(|partition| active(partition, &self.retirement));
+            let queued_retirement = self.retirement.clone();
+            self.run(move || {
+                let partition = partition.filter(|partition| active(partition, &queued_retirement));
+                host::best_effort_with(move |host| host.keep_ready(partition));
+            });
+        }
+        #[cfg(not(target_os = "windows"))]
+        let _ = partition;
+    }
+
     fn set_dormant(&self, ids: Vec<ItemId>, request: u64) {
         // `set_dormant` replaces the host's desired set. Once any profile is
         // retired, even an empty or filtered replacement could resume one of
