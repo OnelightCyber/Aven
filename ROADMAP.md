@@ -8,78 +8,95 @@ missing. What already ships is in the [README](README.md) and the
 To weigh in, open an issue or a discussion. To build one of these, say so on
 its issue first so two people do not do it twice.
 
-## Now
+Sizes are rough: **S** is days, **M** a week or two, **L** several weeks.
 
-Being built or tested.
+## Built, in the next release
 
-- **Setups.** Save how Aven looks and is laid out under a name, switch
-  between setups, and carry one to another machine as a file. A setup can
-  change appearance and layout and nothing else.
-- **Community setups.** A gallery of setups people share, kept as files in
-  this repository and read from it, with no server of Aven's own. Sharing one
-  is a pull request.
-- **An offer to save a password** when you sign in somewhere new, instead of
-  saving from the site menu only. Never saved without a yes.
+| Feature          | What it gives you                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| Setups           | Save how Aven looks and is laid out, switch between setups, carry one as a file                      |
+| Community setups | A gallery read from this repository, with no server; sharing one is a pull request                   |
+| Encrypted sync   | The same appearance, setups, language and search engine on your machines, with no account            |
+| The relay        | A Cloudflare Worker ([`relay/`](relay/README.md)) that stores and passes on only what it cannot read |
 
-## Next
+## Every day
 
-Designed, with the groundwork in the repository.
+What makes a browser the one you keep.
 
-- **Sync between your devices**, end-to-end encrypted: settings and
-  bookmarks first. No account: one device shows a code, the other types it.
-  The relay (in [`relay/`](relay/README.md)) stores only what it cannot read.
-- **Working together on a canvas.** A room link lets a few people see and
-  edit the same Work canvas live, through the same relay, encrypted between
-  them.
-- **Ask from the address bar.** Type `>` and a task, and the agent starts on
-  the page in front, with the usual consent before it acts.
-- **Tidy my tabs.** One command sorts open tabs into groups by what they are
-  about, and shows the result before changing anything.
-- **Panic key.** One shortcut hides every window and mutes every tab, and
-  brings them back as they were.
+| Feature                           | What it gives you                                                              | Size |
+| --------------------------------- | ------------------------------------------------------------------------------ | ---- |
+| An offer to save a password       | No trip to the site menu; never saved without a yes                            | M    |
+| A generator at sign-up            | A strong password offered in the field when you make an account                | S    |
+| Weak and reused password warnings | Worked out on the device; nothing is sent                                      | S    |
+| Bookmarks in sync                 | Bookmarks follow you, encrypted                                                | M    |
+| Send a tab to another device      | One click and it opens on your other machine, through the relay                | M    |
+| Panic key                         | One shortcut hides every window and mutes every tab, then brings them back     | S    |
+| Ask from the address bar          | Type `>` and a task; the agent starts on the page, with consent before it acts | M    |
+| Tidy my tabs                      | Tabs sorted into groups by subject, shown before anything changes              | M    |
+| Search every tab and your history | Find a page by a word in it, from an index kept on the device                  | M    |
+| Reader mode                       | The page without the noise, in the type and width you choose                   | M    |
+| Whole-page capture                | Capture, mark up, copy or save                                                 | S    |
+| Translate the page                | With the model you already connected                                           | M    |
 
-## Later
+## Play and streaming
 
-Wanted, not started.
+What sets Aven apart from a general browser.
 
-**Privacy and security**
+| Feature                  | What it gives you                                                                         | Size |
+| ------------------------ | ----------------------------------------------------------------------------------------- | ---- |
+| Floating window          | A tab (a guide, a wiki, a video, a chat) pinned over the game, as see-through as you like | M    |
+| Game mode profiles       | Different memory, processor and network limits for different games                        | M    |
+| Heaviest tabs            | The three that cost the most at a glance, asleep in one click                             | S    |
+| Live alerts              | A notice when a channel you follow goes live                                              | M    |
+| Stream and call controls | Mute, restart and volume from the sidebar                                                 | S    |
+| Living themes            | Moving backgrounds, interface sounds, shapes; off by themselves in game mode              | L    |
+| A wider streamer mode    | Bookmarks, history and suggestions hidden too while you share your screen                 | S    |
 
-- A signed installer, so Windows stops warning about an unknown publisher.
-- An encrypted export of a whole profile, to move it or keep a backup.
-- A privacy report: what was blocked, for which sites, over time.
-- One place to see and revoke what each site is allowed to do.
+## Agents
 
-**Agents**
+| Feature                       | What it gives you                                                               | Size |
+| ----------------------------- | ------------------------------------------------------------------------------- | ---- |
+| Routines                      | A task an agent repeats on a schedule, with a log of each run                   | L    |
+| Do again what I just did      | Record a series of actions and replay it on another page                        | L    |
+| Local models                  | Ollama and other local servers set up from Settings; nothing leaves the machine | M    |
+| One-click summary             | A long article or a video summed up in the panel, with its sources              | S    |
+| More for outside agents (MCP) | Downloads, bookmarks, and a session scoped to chosen tabs                       | M    |
+| Compare                       | The agent compares a product across sites and returns a table                   | M    |
 
-- Routines: a task an agent repeats on a schedule, with a log of each run.
-- Local models through Ollama and other local servers, set up from Settings.
-- More for outside agents over MCP: downloads, bookmarks, and a session
-  scoped to chosen tabs.
+## Trust and reach
 
-**Play**
+What makes people willing to install it, and able to find it.
 
-- Game mode profiles: different limits for different games.
-- A network and frame-time overlay for the game in front.
-- More sidebar apps, and controls for the stream or call in them.
+| Feature                               | What it gives you                                    | Size |
+| ------------------------------------- | ---------------------------------------------------- | ---- |
+| A signed installer                    | Windows stops warning about an unknown publisher     | M    |
+| `winget install` and a portable build | Install in one command, or not at all                | S    |
+| A beta channel                        | Volunteers try a release before everyone             | S    |
+| Privacy report                        | What was blocked, for which sites, over time         | M    |
+| Permissions at a glance               | See and revoke what each site may do                 | M    |
+| Encrypted profile export              | Move a whole profile, or keep a backup               | M    |
+| The vault behind Windows Hello        | A fingerprint or a PIN before a password is shown    | M    |
+| Breach check                          | Learn that a password leaked without ever sending it | M    |
+| Encrypted DNS of your choice          | Pick a resolver from Settings                        | S    |
+| A site and documentation              | A clear page, pictures, the download                 | M    |
+| The gallery on the web                | Browse setups without opening Aven                   | S    |
 
-**Make it yours**
+## Together
 
-- Themes with more than colours: shapes, spacing and sounds.
-- A marketplace page on the web for setups and themes.
-- Custom keyboard shortcuts carried in a setup.
+| Feature                       | What it gives you                                                             | Size |
+| ----------------------------- | ----------------------------------------------------------------------------- | ---- |
+| Working together on a canvas  | Several people see and edit the same Work canvas live, encrypted between them | L    |
+| Watch together                | Share a tab to watch in step, by a link                                       | L    |
+| History and open tabs in sync | Pick up on one machine what you were doing on another                         | L    |
+| macOS checked and released    | The code is there; it needs a real Mac                                        | L    |
+| Linux                         | Looked at seriously                                                           | L    |
 
-**Everywhere**
-
-- `winget install` and a portable build.
-- A beta channel for updates.
-- macOS checked and released; Linux looked at seriously.
-- A site for Aven, with the documentation.
-
-**Speed and weight**
+## Always
 
 - A startup budget, measured at each release.
-- Less work when switching between settings pages.
+- Settings pages that switch without a slow frame.
 - A memory mode that adapts to how much the machine has free.
+- A view of sleeping tabs and what they save.
 
 ## Not planned
 
