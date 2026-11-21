@@ -157,7 +157,13 @@
   }
 
   /* One scene is a window on a calm ground, in the theme's own tokens. System
-     is both: the dark scene takes the lower right of the light one. */
+     is both: the dark scene takes the right half of the light one.
+
+     These pictures are drawn the first time Appearance opens, and a blurred
+     shadow or a slanted clip each needs the graphics driver to build a new
+     program then, which held that first frame for about half a second. The
+     window's shadow is a gradient on the ground instead, and System's halves
+     meet on a straight edge. */
   .scene {
     --ground: linear-gradient(
       160deg,
@@ -176,6 +182,11 @@
     container-type: inline-size;
     background:
       radial-gradient(
+        64% 58% at 50% 66%,
+        color-mix(in srgb, black 24%, transparent),
+        transparent 74%
+      ),
+      radial-gradient(
         46% 70% at 20% 64%,
         color-mix(in oklab, var(--seed-accent) 16%, transparent),
         transparent
@@ -193,7 +204,7 @@
   }
 
   .scene + .scene {
-    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    clip-path: inset(0 0 0 50%);
   }
 
   .window {
@@ -205,9 +216,7 @@
     border-start-start-radius: 3.2cqw;
     border-start-end-radius: 3.2cqw;
     background: var(--color-chrome);
-    box-shadow:
-      0 0 0 0.5px color-mix(in srgb, var(--seed-fg) 16%, transparent),
-      0 3cqw 8cqw color-mix(in srgb, black 30%, transparent);
+    box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--seed-fg) 16%, transparent);
   }
 
   /* Over a material the column is the frost the system draws, so the ground
@@ -216,8 +225,7 @@
     background: color-mix(in srgb, var(--color-chrome) calc(34% + var(--tint) * 0.4%), transparent);
     box-shadow:
       0 0 0 0.5px color-mix(in srgb, var(--seed-fg) 20%, transparent),
-      inset 0 0.5px 0 color-mix(in srgb, var(--seed-fg) 28%, transparent),
-      0 3cqw 8cqw color-mix(in srgb, black 26%, transparent);
+      inset 0 0.5px 0 color-mix(in srgb, var(--seed-fg) 28%, transparent);
   }
 
   .column {
