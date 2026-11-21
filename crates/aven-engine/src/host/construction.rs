@@ -90,6 +90,25 @@ impl WindowsConstructionSettlement {
     }
 }
 
+/// Sets a new process group's proxy decision going. Windows ships set to
+/// look for a proxy by itself, and a group's first request then waits about
+/// a second for that search to end. Asked for here, the search is over before
+/// the person opens a page. The address is this machine's own, on a port that
+/// was free an instant ago: the connection is refused at once, nothing is
+/// sent to anyone, and a request is all it takes to start the search.
+#[cfg(target_os = "windows")]
+fn start_proxy_decision(view: &ObservedView) {
+    let Ok(port) = std::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0))
+        .and_then(|listener| listener.local_addr())
+        .map(|address| address.port())
+    else {
+        return;
+    };
+    let _ = view.evaluate_script(&format!(
+        "fetch('http://127.0.0.1:{port}/',{{mode:'no-cors',cache:'no-store',credentials:'omit'}}).catch(()=>{{}})"
+    ));
+}
+
 impl EngineHost {
     pub(crate) fn create_view(
         &mut self,
@@ -344,6 +363,20 @@ impl EngineHost {
     // cost hides behind the page render.
     #[cfg(not(all(unix, not(target_os = "macos"))))]
     pub(crate) fn ensure_spare(&mut self, partition: Partition) {
+        self.build_spare(partition, false);
+    }
+
+    /// Builds the spare of a profile that has no page open, for the shell's
+    /// request to keep its engine ready: the one case where a spare starts a
+    /// process group by itself. With a page open, the load-finished hook
+    /// above decides instead.
+    #[cfg(target_os = "windows")]
+    pub(crate) fn ensure_spare_ahead(&mut self, partition: Partition) {
+        self.build_spare(partition, true);
+    }
+
+    #[cfg(not(all(unix, not(target_os = "macos"))))]
+    fn build_spare(&mut self, partition: Partition, ahead: bool) {
         if self.memory_pressure != aven_core::ports::engine::MemoryPressure::Normal {
             return;
         }
@@ -356,8 +389,18 @@ impl EngineHost {
         // Page-load completion can queue this optimization immediately before
         // the last real tab closes. Revalidate physical ownership on the host
         // thread so a late task cannot resurrect an otherwise idle native
-        // process group solely to hold about:blank.
-        if !self.has_live_profile_view(profile) || self.erasure_tombstones.contains(&profile) {
+        // process group solely to hold about:blank. Only a spare asked for
+        // ahead of any page may start a group, and only where none runs.
+        if self.has_live_profile_view(profile) == ahead
+            || self.erasure_tombstones.contains(&profile)
+        {
+            return;
+        }
+        // The group that ended with the last page may not be seen to have
+        // ended yet. A spare built now would hold on to it, and to all the
+        // session left in it: the exit itself builds the fresh one.
+        #[cfg(target_os = "windows")]
+        if ahead && self.browser_processes.contains_key(&profile) {
             return;
         }
         if !bind_profile_persistence_class(&mut self.profile_persistence_classes, partition) {
@@ -381,6 +424,12 @@ impl EngineHost {
         ) {
             #[cfg(target_os = "macos")]
             crate::platform::imp::set_warm_spare_layout(&view, true);
+            // A group this spare has just started has decided nothing about
+            // the network yet.
+            #[cfg(target_os = "windows")]
+            if ahead {
+                start_proxy_decision(&view);
+            }
             self.spare = Some(Spare {
                 partition,
                 view,
