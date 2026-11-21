@@ -1,0 +1,13 @@
+{
+  "aven_setup": 1,
+  "name": "Paper reader",
+  "settings": {
+    "appearance": "light",
+    "ui.density": "comfortable",
+    "ui.font": "serif",
+    "ui.font-size": "15",
+    "ui.newtab-clock": "true",
+    "ui.newtab-greeting": "true",
+    "ui.theme": "paper"
+  }
+}
