@@ -78,3 +78,41 @@ fn a_temporary_page_in_use_is_kept_from_idle_and_pressure_release() {
     assert!(!temporary_page_held(Some((profile, 1)), None));
     assert!(!temporary_page_held(None, Some(profile)));
 }
+
+#[test]
+fn a_spare_outlives_its_last_page_only_for_the_profile_kept_ready() {
+    use aven_core::ports::engine::{MemoryPressure, Partition};
+    let profile = ProfileId::generate();
+    let other = ProfileId::generate();
+    let normal = MemoryPressure::Normal;
+    assert!(keeps_engine_ready(
+        Some(Partition::Default(profile)),
+        profile,
+        normal
+    ));
+    assert!(keeps_engine_ready(
+        Some(Partition::Persistent(profile)),
+        profile,
+        normal
+    ));
+    // Not asked for, asked for another profile, or a private one.
+    assert!(!keeps_engine_ready(None, profile, normal));
+    assert!(!keeps_engine_ready(
+        Some(Partition::Default(other)),
+        profile,
+        normal
+    ));
+    assert!(!keeps_engine_ready(
+        Some(Partition::Ephemeral(profile)),
+        profile,
+        normal
+    ));
+    // Short of memory, nothing is kept ahead of need.
+    for pressure in [MemoryPressure::Warning, MemoryPressure::Critical] {
+        assert!(!keeps_engine_ready(
+            Some(Partition::Default(profile)),
+            profile,
+            pressure
+        ));
+    }
+}
