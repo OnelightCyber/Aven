@@ -10,7 +10,7 @@ sends, and how to turn it off.
 |---|---|---|---|---|
 | **Update check** | GitHub (`github.com/OnelightCyber/Aven`) | An ordinary download request for the release manifest. | About once a day. | Settings, About: automatic update checks. |
 | **Ad and tracker lists** | `easylist.to`, `ublockorigin.github.io` | An ordinary download request for each list, asking only whether it changed. | About once a day while the blocker is on. | Settings, Privacy & security: turn the blocker off. |
-| **Microsoft Defender SmartScreen** | Microsoft | The addresses of the sites you open and information about your downloads, for Microsoft to check against phishing and malware. | While you browse, if it is on. It is on unless you turn it off. | Settings, Privacy & security: Microsoft Defender SmartScreen. Takes effect after a restart. |
+| **Microsoft Defender SmartScreen** | Microsoft | The addresses of the sites you open and information about your downloads, for Microsoft to check against phishing and malware. | While you browse, if it is on. It is on unless you turn it off. | On the welcome screen at first launch, where it is shown before anything else, or later in Settings, Privacy & security (from the next launch). |
 | **Search suggestions** | The search engine you chose | What you type in the address field, as you type it. | While you type, if it is on. | Settings, Search: search suggestions. |
 
 ## What Aven connects to only when you ask
