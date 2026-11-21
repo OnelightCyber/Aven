@@ -4247,5 +4247,7 @@
   "sync_refused": "Ce code n’a pas été accepté.",
   "sync_unreadable": "Ce qui a été reçu n’a pas pu être lu. Rien n’a été modifié.",
   "sync_newer": "Un autre appareil utilise une version plus récente d’Aven. Mettez celui-ci à jour pour synchroniser.",
-  "sync_busy": "Une synchronisation est déjà en cours."
+  "sync_busy": "Une synchronisation est déjà en cours.",
+  "pref_launch_animation": "Animation au lancement",
+  "pref_launch_animation_help": "Le nom se forme à partir de points à l’ouverture d’Aven. Elle dure moins d’une seconde et ne se joue jamais avec le mouvement réduit ni en mode jeu."
 }
