@@ -49,6 +49,12 @@ pub mod zoom;
 
 /// Allowlisted application appearance preferences.
 pub mod preferences;
+/// The list of setups the community shares, read as untrusted text.
+pub mod setup_gallery;
+/// Named sets of appearance choices, saved and carried as files.
+pub mod setups;
+/// What devices sync, the code that pairs them, and how changes are merged.
+pub mod sync;
 /// Colour themes and the window ground native derives from them.
 pub mod theme;
 
