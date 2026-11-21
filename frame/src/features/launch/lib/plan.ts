@@ -3,16 +3,17 @@ import { NAME_BOX, NAME_DOTS } from "./dots";
 /** When each part of the launch happens, in milliseconds from the window
  *  showing. The page is held off the screen only until `doneAt`. */
 export const LAUNCH = {
-  /** Each dot takes this long to land. */
-  land: 460,
+  /** Each dot takes this long to settle in its place. */
+  land: 360,
   /** The glint crosses the name, left to right, from here. */
-  glintFrom: 480,
-  glintSpan: 180,
-  glint: 280,
-  /** The cover starts to fade, and the sidebar's own entrance runs. */
-  fadeAt: 760,
-  fade: 240,
-  doneAt: 1000,
+  glintFrom: 700,
+  glintSpan: 240,
+  glint: 300,
+  /** The name holds, whole, until the cover fades and the sidebar's own
+   *  entrance runs: long enough to read it, short enough not to wait. */
+  fadeAt: 1150,
+  fade: 250,
+  doneAt: 1400,
 } as const;
 
 /** The widest the name is drawn, and its share of a narrow window. */
@@ -48,8 +49,10 @@ export function plan(width: number): { height: number; dots: LaunchDot[] } {
   const reachScale = Math.max(0.4, width / MAX_WIDTH);
   const dots = NAME_DOTS.map(([x, y, r], index) => {
     const size = Math.max(1.4, r * 2 * scale);
+    // Each dot comes up where it belongs, from a few pixels away: the name
+    // is what is seen, not a flight.
     const angle = scatter(index, 1) * Math.PI * 2;
-    const reach = (260 + scatter(index, 2) * 320) * reachScale;
+    const reach = (6 + scatter(index, 2) * 12) * reachScale;
     const across = x / NAME_BOX.width;
     return {
       key: index,
@@ -57,8 +60,8 @@ export function plan(width: number): { height: number; dots: LaunchDot[] } {
       top: y * scale - size / 2,
       size,
       dx: Math.cos(angle) * reach,
-      dy: Math.sin(angle) * reach * 0.62,
-      delay: Math.round(30 + across * 160 + scatter(index, 3) * 80),
+      dy: Math.sin(angle) * reach,
+      delay: Math.round(40 + across * 220 + scatter(index, 3) * 60),
       glint: Math.round(LAUNCH.glintFrom + across * LAUNCH.glintSpan),
     };
   });
