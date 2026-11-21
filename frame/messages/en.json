@@ -4249,5 +4249,6 @@
   "sync_newer": "Another device runs a newer Aven. Update this one to sync.",
   "sync_busy": "A sync is already under way.",
   "pref_launch_animation": "Launch animation",
-  "pref_launch_animation_help": "The name forms out of dots as Aven opens, then the window shows. It never plays with reduced motion or in game mode."
+  "pref_launch_animation_help": "The name forms out of dots as Aven opens, then the window shows. It never plays with reduced motion or in game mode.",
+  "onb_smartscreen_help": "Checks the sites you open and your downloads for phishing and malware by sending their addresses to Microsoft. You can turn it off here or later in Settings, Privacy & security."
 }
