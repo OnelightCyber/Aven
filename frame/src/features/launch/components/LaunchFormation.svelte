@@ -7,7 +7,7 @@
    * The name forming out of scattered dots as the window shows. It is drawn
    * before the window is revealed, holding still, and runs once `running`
    * says the window is on screen. Pages are native views above the chrome,
-   * so they are held off the screen for its second, then let through. A
+   * so they are held off the screen while it plays, then let through. A
    * click or a key ends it at once.
    */
   let { running, onfade, ondone }: { running: boolean; onfade: () => void; ondone: () => void } =
