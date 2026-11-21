@@ -22,7 +22,7 @@ use zeroize::Zeroizing;
 
 /// The relay Aven syncs through: the Worker in `relay/`, which stores only
 /// what it cannot read. Without one, sync is not offered.
-const RELAY: Option<&str> = Some("https://aven-relay.onelight1112.workers.dev");
+const RELAY: Option<&str> = Some("https://aven-relay.aven-browser.workers.dev");
 const CREDENTIAL: &str = "app.aven.sync";
 /// Domain label: salts the derivation and is bound to every ciphertext.
 const LABEL: &[u8] = b"aven-sync-v1";
