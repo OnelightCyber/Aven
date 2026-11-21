@@ -4249,5 +4249,6 @@
   "sync_newer": "Un autre appareil utilise une version plus récente d’Aven. Mettez celui-ci à jour pour synchroniser.",
   "sync_busy": "Une synchronisation est déjà en cours.",
   "pref_launch_animation": "Animation au lancement",
-  "pref_launch_animation_help": "Le nom se forme en points à l’ouverture d’Aven, puis la fenêtre apparaît. Elle ne se joue jamais avec le mouvement réduit ni en mode jeu."
+  "pref_launch_animation_help": "Le nom se forme en points à l’ouverture d’Aven, puis la fenêtre apparaît. Elle ne se joue jamais avec le mouvement réduit ni en mode jeu.",
+  "onb_smartscreen_help": "Vérifie les sites que vous ouvrez et vos téléchargements contre l’hameçonnage et les logiciels malveillants en envoyant leurs adresses à Microsoft. Vous pouvez la désactiver ici ou plus tard dans Réglages, Confidentialité et sécurité."
 }
