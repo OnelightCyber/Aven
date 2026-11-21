@@ -28,6 +28,12 @@ Notable changes to Aven. The format follows
   it never plays with reduced motion or in game mode, and it can be turned
   off (Settings, Appearance).
 - A [roadmap](ROADMAP.md).
+- A [privacy page](PRIVACY.md) listing every connection Aven makes on its
+  own, what it sends and how to turn it off, and a
+  [code signing policy](docs/code-signing.md).
+- The release workflow can give the browser and its installer a Windows code
+  signature through SignPath, each after an approver accepts it. Until
+  SignPath is set up for the repository, releases are built as before.
 
 ### Changed
 
@@ -44,6 +50,10 @@ Notable changes to Aven. The format follows
 
 ### Fixed
 
+- The README said Aven contacts no server. Microsoft Defender SmartScreen,
+  on unless turned off, checks the sites you open with Microsoft, and sync
+  goes through Aven's relay; both are now said, with the rest, in
+  [PRIVACY.md](PRIVACY.md).
 - The memory figure at the foot of the sidebar and in the task manager is
   now what Aven holds in memory, the figure Windows' Task Manager adds up
   for the same processes. It used to count everything Aven's processes had
