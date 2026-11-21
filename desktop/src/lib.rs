@@ -131,12 +131,15 @@ mod renderer_recovery;
 mod resource_close;
 mod screen_capture;
 mod search_providers;
+mod setup_gallery;
+mod setups;
 mod spaces;
 mod startup_alert;
 #[cfg(feature = "work-development-traces")]
 mod startup_styles;
 mod streamer;
 mod swipe;
+mod sync;
 mod system_time;
 mod tab_previews;
 mod tab_switcher;
@@ -2055,6 +2058,15 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             browser_import::import_cancel,
             browser_import::import_open_permission,
             data_export::export_browser_data,
+            setups::setups_export,
+            setups::setups_import,
+            setup_gallery::setups_gallery_list,
+            setup_gallery::setups_gallery_take,
+            sync::sync_status,
+            sync::sync_code,
+            sync::sync_join,
+            sync::sync_now,
+            sync::sync_stop,
             history_menu::history_menu_popup,
             page_source::page_source,
             resource_close_ready,
@@ -8220,6 +8232,7 @@ pub fn run() {
             memory_pressure::install(&handle);
             #[cfg(target_os = "windows")]
             game_mode::install(&handle);
+            sync::install(&handle);
             presence::report_app_active(&handle);
 
             let appearance = APP_STORE
