@@ -4,7 +4,7 @@ import { render } from "vitest-browser-svelte";
 import "$styles/global.css";
 import { emitNativeEvent } from "$shared/testing/native-events";
 import { acceleratorKeys } from "$shared/lib/accelerator";
-import { IS_MAC } from "$shared/platform";
+import { IS_MAC, IS_WINDOWS } from "$shared/platform";
 import type {
   AccountReplyV1,
   Material,
@@ -339,6 +339,28 @@ test("over a material, the window's own glass is the ground", { timeout: 30_000 
   await pause(1600);
   await capture("02-welcome-glass", { wait: false });
 });
+
+test.runIf(IS_WINDOWS)(
+  "the welcome says what goes to Microsoft, and turns it off",
+  { timeout: 20_000 },
+  async () => {
+    document.documentElement.dataset.theme = "dark";
+    render(OnboardingApp);
+    await formed();
+    const smartscreen = page.getByRole("switch", { name: "Microsoft Defender SmartScreen" });
+    await expect.element(smartscreen).toBeVisible();
+    // On unless told otherwise, and said so before anything is asked.
+    await expect.element(smartscreen).toHaveAttribute("aria-checked", "true");
+    await expect.element(page.getByText(/by sending their addresses to Microsoft/u)).toBeVisible();
+    await smartscreen.click();
+    await expect.poll(() => native.settings["privacy.smartscreen"]).toBe("false");
+    await expect.element(smartscreen).toHaveAttribute("aria-checked", "false");
+    // Setup moves on; the choice stays made and the line goes.
+    await page.getByRole("button", { name: /Get started/u }).click();
+    await expect.element(smartscreen).not.toBeVisible();
+    expect(native.settings["privacy.smartscreen"]).toBe("false");
+  },
+);
 
 test("skipping finishes onboarding from anywhere", { timeout: 20_000 }, async () => {
   document.documentElement.dataset.theme = "dark";
