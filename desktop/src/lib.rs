@@ -4694,13 +4694,34 @@ fn ui_info(caller: WebviewWindow) -> UiInfo {
     UiInfo { material }
 }
 
+/// How long after the window shows before the page engine may start ahead
+/// of the first page: the launch animation is over by then.
+const ENGINE_READY_AFTER: std::time::Duration = std::time::Duration::from_millis(1800);
+
 #[tauri::command]
 #[specta::specta]
-fn ui_ready(caller: WebviewWindow, gate: State<'_, UiStartupGate>) -> bool {
+fn ui_ready(
+    caller: WebviewWindow,
+    gate: State<'_, UiStartupGate>,
+    shell: State<'_, Handle>,
+) -> bool {
     if !authorize(&caller, CallerPolicy::Main, "ui_ready") {
         return false;
     }
-    gate.mark_frontend_ready(&caller)
+    let ready = gate.mark_frontend_ready(&caller);
+    if ready {
+        // The page engine may start ahead of the first page, but only once
+        // the window's entrance has played: its processes starting must not
+        // cost the launch a frame.
+        let shell = shell.inner().clone();
+        let _ = std::thread::Builder::new()
+            .name("aven-engine-ready".into())
+            .spawn(move || {
+                std::thread::sleep(ENGINE_READY_AFTER);
+                shell.dispatch(Command::KeepEngineReady);
+            });
+    }
+    ready
 }
 
 #[tauri::command]
