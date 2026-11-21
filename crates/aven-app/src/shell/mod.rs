@@ -1121,6 +1121,10 @@ impl Shell {
                     let _ = self.relayout();
                 }
             }
+            Command::KeepEngineReady => {
+                self.residency.engine_ready_armed = true;
+                self.keep_engine_ready();
+            }
             Command::SidebarResizeGuide(width) => {
                 if let Some(win) = self.windows.focused() {
                     let zone = width.filter(|width| width.is_finite()).map(|width| {
@@ -1574,6 +1578,7 @@ impl Shell {
                 }
                 self.archive_idle_tabs();
                 self.release_idle_spare();
+                self.keep_engine_ready();
                 if self.maintain_views() {
                     self.project_items();
                 }
