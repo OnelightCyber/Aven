@@ -782,6 +782,26 @@ export const commands = {
 	/**  Opens the system setting a source needs (Safari: Full Disk Access). */
 	importOpenPermission: (source: string) => __TAURI_INVOKE<boolean>("import_open_permission", { source }),
 	exportBrowserData: (kind: ExportKindView) => __TAURI_INVOKE<ExportOutcomeView>("export_browser_data", { kind }),
+	setupsExport: (id: string) => __TAURI_INVOKE<SetupExportView>("setups_export", { id }),
+	setupsImport: () => __TAURI_INVOKE<SetupImportView>("setups_import"),
+	/**  The community's list, fetched because the person opened it. */
+	setupsGalleryList: () => __TAURI_INVOKE<SetupGalleryView>("setups_gallery_list"),
+	/**  One setup from the list, read as a file from anywhere would be. */
+	setupsGalleryTake: (id: string) => __TAURI_INVOKE<SetupGalleryTakeView>("setups_gallery_take", { id }),
+	syncStatus: () => __TAURI_INVOKE<SyncStatusView>("sync_status"),
+	/**
+	 *  This device's code, made on first asking. Showing it is how another
+	 *  device is added, so only the main window may ask.
+	 */
+	syncCode: () => __TAURI_INVOKE<SyncCodeView>("sync_code"),
+	/**  Joins the devices of a code typed here, then syncs once. */
+	syncJoin: (code: string) => __TAURI_INVOKE<SyncOutcome>("sync_join", { code }),
+	syncNow: () => __TAURI_INVOKE<SyncOutcome>("sync_now"),
+	/**
+	 *  Stops syncing on this device. The settings stay as they are; the code is
+	 *  forgotten, and what the relay holds stays for the other devices.
+	 */
+	syncStop: () => __TAURI_INVOKE<boolean>("sync_stop"),
 	historyMenuPopup: (id: string, forward: boolean, x: number | null, y: number | null) => __TAURI_INVOKE<boolean>("history_menu_popup", { id, forward, x, y }),
 	pageSource: (id: string) => __TAURI_INVOKE<{
 	url: string,
@@ -3217,6 +3237,56 @@ export type SearchShortcut_Serialize = {
 	enabled: boolean,
 };
 
+export type SetupExportView = "saved" |
+/**  The person closed the save dialog. */
+"cancelled" |
+/**  No saved setup has this id. */
+"missing" | "failed";
+
+export type SetupGalleryEntryView = {
+	id: string,
+	name: string,
+	author: string,
+	about: string,
+};
+
+export type SetupGalleryOutcome = "listed" |
+/**  The list could not be reached. */
+"offline" |
+/**  What came back is not a list this Aven reads. */
+"unreadable" |
+/**  The list is written for a later Aven. */
+"newer";
+
+export type SetupGalleryTakeOutcome = "read" | "offline" |
+/**  The file is not a setup this Aven can use. */
+"unreadable" | "newer";
+
+export type SetupGalleryTakeView = {
+	outcome: SetupGalleryTakeOutcome,
+	name: string,
+	settings: { [key in string]: string },
+	dropped: number,
+};
+
+export type SetupGalleryView = {
+	outcome: SetupGalleryOutcome,
+	entries: SetupGalleryEntryView[],
+};
+
+export type SetupImportOutcome = "read" |
+/**  The person closed the file dialog. */
+"cancelled" | "too_large" | "not_a_setup" | "newer" | "empty" | "failed";
+
+export type SetupImportView = {
+	outcome: SetupImportOutcome,
+	/**  Empty unless the file was read, or when it named nothing usable. */
+	name: string,
+	settings: { [key in string]: string },
+	/**  Entries of the file a setup may not hold, left out. */
+	dropped: number,
+};
+
 export type ShutSiteView = {
 	site: string,
 	icon: IconRef | null,
@@ -3379,6 +3449,33 @@ export type SwipeScroll = {
 	dx: number | null,
 	dy: number | null,
 	time: number | null,
+};
+
+export type SyncCodeView = {
+	outcome: SyncOutcome,
+	/**  The code to type on another device; empty unless `outcome` is synced. */
+	code: string,
+};
+
+export type SyncOutcome = "synced" |
+/**  This device has no sync code. */
+"off" |
+/**  This build has no relay to sync through. */
+"unavailable" |
+/**  The relay could not be reached. */
+"offline" |
+/**  The relay turned the code away. */
+"refused" |
+/**  What the relay holds is not what a device of this code wrote. */
+"unreadable" |
+/**  Another device runs a later Aven that this one cannot read. */
+"newer" |
+/**  A round is already under way, or other devices kept writing. */
+"busy" | "failed";
+
+export type SyncStatusView = {
+	available: boolean,
+	on: boolean,
 };
 
 export type TabAudioView = {
