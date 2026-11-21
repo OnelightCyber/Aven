@@ -4249,5 +4249,6 @@
   "sync_newer": "다른 기기가 더 새로운 Aven을 사용 중이에요. 동기화하려면 이 기기를 업데이트해 주세요.",
   "sync_busy": "이미 동기화가 진행 중이에요.",
   "pref_launch_animation": "시작 애니메이션",
-  "pref_launch_animation_help": "Aven을 열면 점들이 모여 이름이 되고, 그다음 창이 나타나요. 동작 줄이기나 게임 모드에서는 재생되지 않아요."
+  "pref_launch_animation_help": "Aven을 열면 점들이 모여 이름이 되고, 그다음 창이 나타나요. 동작 줄이기나 게임 모드에서는 재생되지 않아요.",
+  "onb_smartscreen_help": "연 사이트와 다운로드의 주소를 Microsoft에 보내 피싱과 악성 코드를 확인해요. 여기서 또는 나중에 설정의 개인 정보 보호 및 보안에서 끌 수 있어요."
 }
