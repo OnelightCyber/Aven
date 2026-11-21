@@ -129,6 +129,8 @@ pub(crate) fn install(app: &tauri::AppHandle) {
 /// Aven's processes as last measured, for the task manager.
 #[derive(Clone, Copy)]
 pub(crate) struct Totals {
+    /// What Aven's processes hold in memory that is their own: the figure
+    /// Windows' Task Manager adds up, so the two agree.
     pub memory_mb: u64,
     pub cpu_percent: f64,
     pub processes: usize,
@@ -258,6 +260,7 @@ mod native {
     };
     use windows::Win32::System::ProcessStatus::{
         GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS, PROCESS_MEMORY_COUNTERS_EX,
+        PROCESS_MEMORY_COUNTERS_EX2,
     };
     use windows::Win32::System::Threading::{
         GetProcessTimes, OpenProcess, ProcessPowerThrottling, SetPriorityClass,
@@ -367,7 +370,58 @@ mod native {
         (u64::from(time.dwHighDateTime) << 32) | u64::from(time.dwLowDateTime)
     }
 
-    /// The tree's private memory in MB, and each process's processor time.
+    /// What the process holds in memory that is its own, in bytes: its
+    /// private working set, the figure Windows' Task Manager shows. None on
+    /// a Windows too old to say.
+    fn private_in_memory(process: &Process) -> Option<u64> {
+        let mut counters = PROCESS_MEMORY_COUNTERS_EX2 {
+            cb: std::mem::size_of::<PROCESS_MEMORY_COUNTERS_EX2>() as u32,
+            ..Default::default()
+        };
+        // SAFETY: the counters are sized for the EX2 form and owned here.
+        unsafe {
+            GetProcessMemoryInfo(
+                process.0,
+                (&mut counters as *mut PROCESS_MEMORY_COUNTERS_EX2)
+                    .cast::<PROCESS_MEMORY_COUNTERS>(),
+                counters.cb,
+            )
+        }
+        .ok()?;
+        Some(counters.PrivateWorkingSetSize as u64)
+    }
+
+    /// Whether this Windows gives the private working set, for the tests.
+    #[cfg(test)]
+    pub(super) fn tells_private_memory() -> bool {
+        open(std::process::id(), PROCESS_QUERY_LIMITED_INFORMATION)
+            .is_some_and(|process| private_in_memory(&process).is_some())
+    }
+
+    /// What the process has asked the system to keep for it, in bytes, in
+    /// memory or not: a graphics process asks for several times what it
+    /// ever touches, so this overstates what Aven uses.
+    fn private_commit(process: &Process) -> Option<u64> {
+        let mut counters = PROCESS_MEMORY_COUNTERS_EX {
+            cb: std::mem::size_of::<PROCESS_MEMORY_COUNTERS_EX>() as u32,
+            ..Default::default()
+        };
+        // SAFETY: the counters are sized for the EX form and owned here.
+        unsafe {
+            GetProcessMemoryInfo(
+                process.0,
+                (&mut counters as *mut PROCESS_MEMORY_COUNTERS_EX)
+                    .cast::<PROCESS_MEMORY_COUNTERS>(),
+                counters.cb,
+            )
+        }
+        .ok()?;
+        Some(counters.PrivateUsage as u64)
+    }
+
+    /// What the tree holds in memory in MB, and each process's processor
+    /// time. The memory is what Task Manager adds up for the same processes;
+    /// where Windows cannot give that figure, what they asked for stands in.
     pub(super) fn measure(tree: &HashSet<u32>) -> (u64, HashMap<u32, u64>) {
         let mut bytes = 0u64;
         let mut times = HashMap::new();
@@ -375,23 +429,9 @@ mod native {
             let Some(process) = open(*pid, PROCESS_QUERY_LIMITED_INFORMATION) else {
                 continue;
             };
-            let mut counters = PROCESS_MEMORY_COUNTERS_EX {
-                cb: std::mem::size_of::<PROCESS_MEMORY_COUNTERS_EX>() as u32,
-                ..Default::default()
-            };
-            // SAFETY: the counters are sized for the EX form and owned here.
-            if unsafe {
-                GetProcessMemoryInfo(
-                    process.0,
-                    (&mut counters as *mut PROCESS_MEMORY_COUNTERS_EX)
-                        .cast::<PROCESS_MEMORY_COUNTERS>(),
-                    counters.cb,
-                )
-            }
-            .is_ok()
-            {
-                bytes += counters.PrivateUsage as u64;
-            }
+            bytes += private_in_memory(&process)
+                .or_else(|| private_commit(&process))
+                .unwrap_or(0);
             let mut created = FILETIME::default();
             let mut exited = FILETIME::default();
             let mut kernel = FILETIME::default();
@@ -515,6 +555,39 @@ mod native {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_memory_figure_counts_what_is_held_not_what_is_asked_for() {
+        const MB: usize = 1024 * 1024;
+        let own = std::collections::HashSet::from([std::process::id()]);
+        let held = || native::measure(&own).0 as i64;
+        if !native::tells_private_memory() {
+            // A Windows too old for the figure: what was asked for stands in.
+            assert!(held() > 0);
+            return;
+        }
+        let before = held();
+        assert!(before > 0, "this process holds memory of its own");
+        // Asked for and never touched: Windows keeps no memory behind it.
+        let mut asked = Vec::<u8>::with_capacity(256 * MB);
+        assert!(
+            held() - before < 64,
+            "256 MB asked for and untouched must not count as used"
+        );
+        // Touched, one byte a page: now it is held.
+        // SAFETY: inside the capacity just reserved; every byte read below
+        // was written here first.
+        unsafe { asked.set_len(96 * MB) };
+        for page in asked.chunks_mut(4096) {
+            page[0] = 1;
+        }
+        let touched = held() - before;
+        assert!(
+            touched >= 64,
+            "96 MB touched must count as used, counted {touched} MB"
+        );
+        assert_eq!(std::hint::black_box(&asked)[4096], 1);
+    }
 
     #[test]
     fn the_memory_cap_holds_its_level_inside_the_margin() {
