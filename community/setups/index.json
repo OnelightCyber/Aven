@@ -1,0 +1,41 @@
+{
+  "aven_setups": 1,
+  "setups": [
+    {
+      "id": "midnight-focus",
+      "name": "Midnight focus",
+      "author": "Aven",
+      "about": "Dark and compact, with a quiet new tab for long sessions."
+    },
+    {
+      "id": "paper-reader",
+      "name": "Paper reader",
+      "author": "Aven",
+      "about": "Light and warm, with serif text at a larger size for reading."
+    },
+    {
+      "id": "nord-coder",
+      "name": "Nord coder",
+      "author": "Aven",
+      "about": "Nord colours, monospaced text and close buttons always in reach."
+    },
+    {
+      "id": "tokyo-night",
+      "name": "Tokyo night",
+      "author": "Aven",
+      "about": "Tokyo Night with a lavender accent on the system's glass."
+    },
+    {
+      "id": "classic-tabs",
+      "name": "Classic tabs",
+      "author": "Aven",
+      "about": "Tabs across the top, as in the browser you came from."
+    },
+    {
+      "id": "bare",
+      "name": "Bare",
+      "author": "Aven",
+      "about": "The page and little else: no sidebar, and an empty new tab."
+    }
+  ]
+}
