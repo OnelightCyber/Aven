@@ -1,0 +1,11 @@
+{
+  "aven_setup": 1,
+  "name": "Tokyo night",
+  "settings": {
+    "appearance": "dark",
+    "ui.accent": "lavender",
+    "ui.material": "auto",
+    "ui.newtab-dim": "true",
+    "ui.theme": "tokyo-night"
+  }
+}
