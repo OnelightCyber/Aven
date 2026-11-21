@@ -23,7 +23,8 @@
 Aven keeps what a browser should do out of your way: tabs down the side, ads
 and trackers blocked from the first launch, a password vault that stays on
 your machine, and a game mode that hands the processor back to your game. It
-has no account, no server of its own, and nothing to sign in to.
+has no account, no server that receives your browsing, and nothing to sign in
+to.
 
 <p align="center">
   <img src="assets/readme/auto-mode.gif" width="880" alt="Ask Aven in Auto mode: asked how tall the Eiffel Tower is, it searches the web, rejects Google's cookie prompt by itself with its pointer, and answers with its sources." />
