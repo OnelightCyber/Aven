@@ -10,6 +10,7 @@ pub const KEYS: &[&str] = &[
     "ui.accent",
     "ui.material",
     "ui.reduce-motion",
+    "ui.launch-animation",
     "ui.newtab-greeting",
     "ui.newtab-name",
     "ui.newtab-clock",
@@ -344,6 +345,7 @@ pub fn value_allowed(key: &str, value: &str) -> bool {
         }
         "search.suggestions"
         | "ui.reduce-motion"
+        | "ui.launch-animation"
         | "ui.newtab-greeting"
         | "ui.newtab-name"
         | "ui.newtab-clock"
