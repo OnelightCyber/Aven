@@ -90,6 +90,6 @@ plan.
   expires, but the relay itself does not limit how many one address creates:
   add a [rate limiting rule](https://developers.cloudflare.com/waf/rate-limiting-rules/)
   on `/v1/` in the Cloudflare dashboard.
-- The relay has not run in production yet. The Durable Object classes are
-  thin wrappers over the tested rules, and are themselves checked only by
-  deploying.
+- The Durable Object classes are thin wrappers over the tested rules. They
+  are checked by deploying: a box's whole life, a room with two peers and
+  the refusals were run against the deployed Worker on 21 November 2026.
