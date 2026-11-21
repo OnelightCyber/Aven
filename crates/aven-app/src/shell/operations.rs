@@ -951,6 +951,12 @@ impl Shell {
         if self.proxy.apply(&key, &value) {
             self.engine.set_proxy(self.proxy.server());
         }
+        if key == "privacy.smartscreen" {
+            self.engine
+                .set_reputation_checking(aven_core::preferences::smartscreen_required(Some(
+                    &value,
+                )));
+        }
         if key == "ui.force-dark" {
             self.force_dark = value == "true";
             self.engine.set_force_dark(self.force_dark);
