@@ -975,6 +975,7 @@ fn warm_spare_cannot_outlive_its_profiles_last_real_view() {
         env!("CARGO_MANIFEST_DIR"),
         "/src/host/lifecycle.rs"
     ));
+    let profiles = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/host/profiles.rs"));
     let ensure_spare = construction
         .split("pub(crate) fn ensure_spare(&mut self, partition: Partition)")
         .nth(1)
@@ -982,7 +983,15 @@ fn warm_spare_cannot_outlive_its_profiles_last_real_view() {
         .split("pub(crate) fn ensure_spare(&mut self, partition: Partition)")
         .next()
         .expect("end of native warm-spare implementation");
-    assert!(ensure_spare.contains("!self.has_live_profile_view(profile)"));
+    // After a load, a spare needs a live page of its profile. The one
+    // exception, a spare built ahead of any page for the engine kept ready,
+    // starts no group while the last one may still run, and is never
+    // private.
+    assert!(ensure_spare.contains("self.build_spare(partition, false)"));
+    assert!(ensure_spare.contains("self.has_live_profile_view(profile) == ahead"));
+    assert!(ensure_spare.contains("if ahead && self.browser_processes.contains_key(&profile)"));
+    assert!(ensure_spare.contains("matches!(partition, Partition::Ephemeral(_))"));
+    assert!(ensure_spare.contains("self.erasure_tombstones.contains(&profile)"));
 
     let idle_close = lifecycle
         .split("fn close_idle_spare(&mut self, profile: ProfileId)")
@@ -993,6 +1002,17 @@ fn warm_spare_cannot_outlive_its_profiles_last_real_view() {
         .expect("end of idle spare retirement");
     assert!(idle_close.contains("spare.view.close_explicit()"));
     assert!(idle_close.contains("self.web_contexts.remove(&profile)"));
+    // Only a quiet spell or a borrowed call ending spares the engine kept
+    // ready; the last page closing always ends its group.
+    assert!(
+        idle_close.contains("keeps_engine_ready(self.kept_ready, profile, self.memory_pressure)")
+    );
+    let end = idle_close
+        .split("pub(super) fn end_idle_spare(&mut self, profile: ProfileId)")
+        .nth(1)
+        .expect("spare retirement with the last page");
+    assert!(!end.contains("keeps_engine_ready"));
+    assert!(end.contains("spare.view.close_explicit()"));
 
     let close = lifecycle
         .split("pub(crate) fn close(&mut self, id: ItemId)")
@@ -1001,7 +1021,20 @@ fn warm_spare_cannot_outlive_its_profiles_last_real_view() {
         .split("pub(super) fn shutdown")
         .next()
         .expect("end of view close implementation");
-    assert!(close.contains("self.close_idle_spare(profile)"));
+    assert!(close.contains("self.end_idle_spare(profile)"));
+    assert!(!close.contains("self.close_idle_spare(profile)"));
+
+    // A fresh group for the engine kept ready starts only once the old one
+    // is seen to have exited, and never inside WebView2's own callback.
+    let recovery = profiles
+        .split("fn finalize_and_authorize_profile_recovery(")
+        .nth(1)
+        .expect("exit finalization")
+        .split("fn finalize_browser_process_exit(")
+        .next()
+        .expect("end of exit finalization");
+    assert!(recovery.contains("schedule_browser_timeout"));
+    assert!(recovery.contains("host.kept_ready == Some(partition)"));
 }
 
 #[test]
