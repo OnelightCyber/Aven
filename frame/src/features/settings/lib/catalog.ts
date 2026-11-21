@@ -180,6 +180,12 @@ export const fields = {
     description: m.pref_general_home_help,
     initial: "",
   },
+  "appearance.setups": {
+    section: "appearance",
+    label: m.setups_title,
+    description: m.setups_help,
+    initial: "",
+  },
   "general.import": {
     section: "general",
     label: m.pref_general_import,
