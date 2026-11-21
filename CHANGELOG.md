@@ -31,6 +31,9 @@ Notable changes to Aven. The format follows
 - A [privacy page](PRIVACY.md) listing every connection Aven makes on its
   own, what it sends and how to turn it off, and a
   [code signing policy](docs/code-signing.md).
+- The welcome screen at first launch says that Microsoft Defender SmartScreen
+  sends the addresses of the sites you open to Microsoft, with a switch to
+  turn it off. Chosen there, it applies from the first page.
 - The release workflow can give the browser and its installer a Windows code
   signature through SignPath, each after an approver accepts it. Until
   SignPath is set up for the repository, releases are built as before.
