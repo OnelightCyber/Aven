@@ -4249,5 +4249,5 @@
   "sync_newer": "Başka bir aygıt daha yeni bir Aven kullanıyor. Eşitlemek için bunu güncelleyin.",
   "sync_busy": "Bir eşitleme zaten sürüyor.",
   "pref_launch_animation": "Açılış animasyonu",
-  "pref_launch_animation_help": "Aven açılırken ad noktalardan oluşur. Bir saniyeden kısa sürer; azaltılmış hareket veya oyun modunda hiç oynatılmaz."
+  "pref_launch_animation_help": "Aven açılırken ad noktalardan oluşur, ardından pencere görünür. Azaltılmış hareket veya oyun modunda hiç oynatılmaz."
 }
