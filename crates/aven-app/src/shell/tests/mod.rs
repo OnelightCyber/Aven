@@ -349,6 +349,7 @@ pub(crate) struct FakeEngine {
     warm_spare_calls: std::sync::atomic::AtomicUsize,
     release_spare_calls: std::sync::atomic::AtomicUsize,
     engine_ready: Mutex<Vec<Option<Partition>>>,
+    reputation_checking: Mutex<Vec<bool>>,
     media_capture_stops: Mutex<Vec<(ItemId, NavigationPresentationId)>>,
     navigation_requests: Mutex<Vec<NavigationRequestId>>,
     zoom_requests: Mutex<Vec<(ItemId, f64, ZoomRequestId)>>,
@@ -427,6 +428,10 @@ impl FakeEngine {
     fn warm_spare_calls(&self) -> usize {
         self.warm_spare_calls
             .load(std::sync::atomic::Ordering::Acquire)
+    }
+    /// Every SmartScreen choice the shell passed on, in order.
+    fn reputation_checking(&self) -> Vec<bool> {
+        self.reputation_checking.lock().unwrap().clone()
     }
     /// Every word the shell gave on keeping the page engine ready, in order.
     fn engine_ready(&self) -> Vec<Option<Partition>> {
@@ -1147,6 +1152,9 @@ impl Engine for FakeEngine {
     }
     fn keep_engine_ready(&self, partition: Option<Partition>) {
         self.engine_ready.lock().unwrap().push(partition);
+    }
+    fn set_reputation_checking(&self, required: bool) {
+        self.reputation_checking.lock().unwrap().push(required);
     }
     fn prepare_profile(&self, partition: Partition) {
         let kind = match partition {
