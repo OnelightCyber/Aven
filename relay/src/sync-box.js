@@ -12,6 +12,7 @@ import {
   admit,
   bearer,
   precondition,
+  readBounded,
   reply,
   take,
 } from "./protocol.js";
@@ -59,9 +60,9 @@ export async function handleBox(storage, memory, request, now) {
   // actually sent.
   const declared = Number(request.headers.get("content-length") ?? "0");
   if (!Number.isFinite(declared) || declared > MAX_BLOB_BYTES) return reply(413);
-  const blob = await request.arrayBuffer();
+  const blob = await readBounded(request, MAX_BLOB_BYTES);
+  if (blob === null) return reply(413);
   if (blob.byteLength === 0) return reply(400);
-  if (blob.byteLength > MAX_BLOB_BYTES) return reply(413);
   const version = await storage.get("version");
   const matches = expected === "*" ? version === undefined : version === expected;
   if (!matches) return reply(412, null, version === undefined ? {} : etag(version));
