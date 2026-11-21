@@ -2778,6 +2778,15 @@ impl Engine for WebviewEngine {
         self.run(|| host::best_effort_with(|host| host.release_spare()));
     }
 
+    fn set_reputation_checking(&self, required: bool) {
+        // Refused once a page was made: the stored choice then applies at
+        // the next launch, as Settings says.
+        #[cfg(target_os = "windows")]
+        let _ = reputation::choose_before_first_view(required);
+        #[cfg(not(target_os = "windows"))]
+        let _ = required;
+    }
+
     fn keep_engine_ready(&self, partition: Option<Partition>) {
         // Windows only: elsewhere a process group still ends with its last
         // page, and nothing here is said to the host.
