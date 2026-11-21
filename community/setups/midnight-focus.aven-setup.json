@@ -1,0 +1,16 @@
+{
+  "aven_setup": 1,
+  "name": "Midnight focus",
+  "settings": {
+    "appearance": "dark",
+    "sidebar.mode": "compact",
+    "ui.density": "compact",
+    "ui.newtab-clock": "true",
+    "ui.newtab-focus": "true",
+    "ui.newtab-greeting": "false",
+    "ui.newtab-tasks": "false",
+    "ui.newtab-trackers": "false",
+    "ui.newtab-wordmark": "false",
+    "ui.theme": "midnight"
+  }
+}
