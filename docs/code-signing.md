@@ -3,6 +3,9 @@
 Free code signing provided by [SignPath.io](https://about.signpath.io/),
 certificate by [SignPath Foundation](https://signpath.org/).
 
+Aven has applied to SignPath Foundation. Until it is accepted, releases carry
+no Windows code signature; each is still signed for Aven's own updater.
+
 ## What is signed
 
 Two files of each Windows release, and nothing else:
