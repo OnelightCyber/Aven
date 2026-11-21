@@ -423,3 +423,64 @@ fn browsing_keeps_a_warm_spare_and_memory_pressure_hands_it_to_the_engine() {
     shell.handle(Command::Tick);
     assert_eq!(engine.release_spare_calls(), 0);
 }
+
+#[test]
+fn the_page_engine_is_kept_ready_only_once_the_window_has_shown() {
+    let (mut shell, engine, _screen) = setup();
+    shell.handle(Command::Bootstrap);
+    shell.handle(Command::Tick);
+    assert!(
+        engine.engine_ready().is_empty(),
+        "nothing starts ahead of the first page during the launch"
+    );
+
+    shell.handle(Command::KeepEngineReady);
+    let profile = shell.windows.focused().expect("a window").profile;
+    assert_eq!(
+        engine.engine_ready(),
+        [Some(shell.partition_of_profile(profile))]
+    );
+    assert!(!matches!(
+        shell.partition_of_profile(profile),
+        Partition::Ephemeral(_)
+    ));
+
+    // Said again at every upkeep: the engine may have lost its spare.
+    shell.handle(Command::Tick);
+    assert_eq!(engine.engine_ready().len(), 2);
+    assert_eq!(engine.engine_ready()[1], engine.engine_ready()[0]);
+}
+
+#[test]
+fn saving_memory_or_short_memory_lets_the_engine_stop_with_its_last_page() {
+    let (mut shell, engine, _screen) = setup();
+    shell.handle(Command::Bootstrap);
+    shell.handle(Command::KeepEngineReady);
+    assert!(engine.engine_ready().last().unwrap().is_some());
+
+    shell.handle(Command::SetAppSetting {
+        key: "performance.memory".into(),
+        value: "save-memory".into(),
+    });
+    assert_eq!(engine.engine_ready().last(), Some(&None));
+    shell.handle(Command::SetAppSetting {
+        key: "performance.memory".into(),
+        value: "balanced".into(),
+    });
+    assert!(engine.engine_ready().last().unwrap().is_some());
+
+    shell.handle(Command::SetMemoryPressure(
+        aven_core::ports::engine::MemoryPressure::Warning,
+    ));
+    assert_eq!(engine.engine_ready().last(), Some(&None));
+    shell.handle(Command::Tick);
+    assert_eq!(
+        engine.engine_ready().last(),
+        Some(&None),
+        "still short of memory"
+    );
+    shell.handle(Command::SetMemoryPressure(
+        aven_core::ports::engine::MemoryPressure::Normal,
+    ));
+    assert!(engine.engine_ready().last().unwrap().is_some());
+}
