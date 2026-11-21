@@ -325,6 +325,36 @@ async fn write_box(
     }
 }
 
+/// What the relay answered, as settings, the box's version and the count of
+/// writes it carries, or the outcome to stop on.
+///
+/// An empty box holds nothing to apply, whatever this device saw before: a
+/// box expires when no device has come for months, and the devices then
+/// fill it again. A box that opens but counts fewer writes than this device
+/// has seen is a past state handed back, and is refused.
+fn understood(
+    key: &LessSafeKey,
+    read: Read,
+    last_seen: u64,
+) -> Result<(Settings, Option<u64>, u64), SyncOutcome> {
+    match read {
+        Read::Empty => Ok((Settings::new(), None, last_seen)),
+        Read::Box { blob, version } => {
+            let plain = open(key, &blob).ok_or(SyncOutcome::Unreadable)?;
+            let (settings, seq) = rules::decode(&plain).map_err(|refusal| match refusal {
+                PlainRefusal::Newer => SyncOutcome::Newer,
+                _ => SyncOutcome::Unreadable,
+            })?;
+            if seq < last_seen {
+                return Err(SyncOutcome::Unreadable);
+            }
+            Ok((settings, Some(version), seq))
+        }
+        Read::Offline => Err(SyncOutcome::Offline),
+        Read::Refused => Err(SyncOutcome::Refused),
+    }
+}
+
 /// One round: read the relay's copy, merge it with this device's settings,
 /// apply what the other devices changed, and write back what this one did.
 async fn round(app: &tauri::AppHandle) -> SyncOutcome {
@@ -353,25 +383,11 @@ async fn round(app: &tauri::AppHandle) -> SyncOutcome {
             .unwrap_or_default()
     };
     for _ in 0..ATTEMPTS {
-        let (remote, version, seen) = match read_box(&client, &relay, &keys).await {
-            Read::Empty => (Settings::new(), None, 0),
-            Read::Box { blob, version } => {
-                let Some(plain) = open(&keys.key, &blob) else {
-                    return SyncOutcome::Unreadable;
-                };
-                match rules::decode(&plain) {
-                    Ok((settings, seq)) => (settings, Some(version), seq),
-                    Err(PlainRefusal::Newer) => return SyncOutcome::Newer,
-                    Err(_) => return SyncOutcome::Unreadable,
-                }
-            }
-            Read::Offline => return SyncOutcome::Offline,
-            Read::Refused => return SyncOutcome::Refused,
+        let read = read_box(&client, &relay, &keys).await;
+        let (remote, version, seen) = match understood(&keys.key, read, state.seq) {
+            Ok(remote) => remote,
+            Err(outcome) => return outcome,
         };
-        // A relay handing back a state older than one this device has seen.
-        if seen < state.seq {
-            return SyncOutcome::Unreadable;
-        }
         let local = tokio::task::spawn_blocking(local_settings)
             .await
             .unwrap_or_default();
@@ -598,6 +614,54 @@ mod tests {
         assert_eq!(open(&keys.key, &blob[..blob.len() - 1]), None);
         assert_eq!(open(&keys.key, &blob[..NONCE_LEN - 1]), None);
         assert_eq!(open(&keys.key, &vec![0; MAX_BLOB_BYTES + 1]), None);
+    }
+
+    #[test]
+    fn a_relay_s_answer_is_applied_only_when_it_is_whole_and_not_a_past_state() {
+        let keys = derive(&SECRET).unwrap();
+        let sealed = |seq: u64| {
+            let settings = Settings::from([("appearance".to_owned(), "dark".to_owned())]);
+            seal(&keys.key, &rules::encode(&settings, seq)).unwrap()
+        };
+        let boxed = |blob: Vec<u8>| Read::Box { blob, version: 9 };
+        // Current or newer than what this device saw: taken.
+        let (settings, version, seq) = understood(&keys.key, boxed(sealed(5)), 5).unwrap();
+        assert_eq!(settings.get("appearance").map(String::as_str), Some("dark"));
+        assert_eq!((version, seq), (Some(9), 5));
+        assert!(understood(&keys.key, boxed(sealed(6)), 5).is_ok());
+        // A past state handed back, bytes that do not open, another code's box.
+        assert_eq!(
+            understood(&keys.key, boxed(sealed(4)), 5).unwrap_err(),
+            SyncOutcome::Unreadable
+        );
+        assert_eq!(
+            understood(&keys.key, boxed(vec![0; 64]), 0).unwrap_err(),
+            SyncOutcome::Unreadable
+        );
+        let other = derive(&[8; CODE_BYTES]).unwrap();
+        assert_eq!(
+            understood(&other.key, boxed(sealed(5)), 0).unwrap_err(),
+            SyncOutcome::Unreadable
+        );
+        // Sealed by a device of this code, but not what a device sends.
+        let odd = seal(&keys.key, b"{\"aven_sync\":7,\"seq\":9,\"settings\":{}}").unwrap();
+        assert_eq!(
+            understood(&keys.key, boxed(odd), 0).unwrap_err(),
+            SyncOutcome::Newer
+        );
+        // A box that expired is empty, not a rewind: this device fills it
+        // again, counting on from what it had seen.
+        let (settings, version, seq) = understood(&keys.key, Read::Empty, 5).unwrap();
+        assert!(settings.is_empty());
+        assert_eq!((version, seq), (None, 5));
+        assert_eq!(
+            understood(&keys.key, Read::Offline, 0).unwrap_err(),
+            SyncOutcome::Offline
+        );
+        assert_eq!(
+            understood(&keys.key, Read::Refused, 0).unwrap_err(),
+            SyncOutcome::Refused
+        );
     }
 
     #[test]
