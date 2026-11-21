@@ -160,10 +160,28 @@ async function initialize(generation: number, signal: AbortSignal) {
     return;
   }
   stop = unsubscribe;
-  const reads = ["shortcutCatalogue", ...(Object.keys(defaults) as PreferenceKey[])] as const;
-  // An observation timeout leaves its native request in flight. Every worker
+  const keys = Object.keys(defaults) as PreferenceKey[];
+  // An observation timeout leaves its native request in flight. Every read
   // shares the same deadline and stops after a timeout.
   const deadline = performance.now() + STARTUP_TIMEOUT_MS;
+  // Every setting in one answer: the window waits for this before it shows,
+  // and one call is back long before eighty are. False when native has no
+  // such answer, so each setting is read on its own instead.
+  async function readAll(): Promise<boolean> {
+    try {
+      const all = await observe(commands.settingsSnapshot(), deadline - performance.now(), signal);
+      if (all.state === "timeout") return true;
+      if (generation !== epoch || all.state !== "received") return false;
+      for (const key of keys) if (!updated[key]) apply(key, all.value[key] ?? defaults[key]);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  // With that answer in hand only the shortcut catalogue is left to read.
+  const reads: readonly ("shortcutCatalogue" | PreferenceKey)[] = (await readAll())
+    ? ["shortcutCatalogue"]
+    : ["shortcutCatalogue", ...keys];
   let next = 0;
   async function read() {
     while (generation === epoch && !signal.aborted) {
