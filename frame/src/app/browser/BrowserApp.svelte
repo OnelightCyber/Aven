@@ -1,7 +1,7 @@
 <script lang="ts">
   import { installCloseService } from "$shared/lib/close";
   import "$styles/global.css";
-  import { onMount, untrack } from "svelte";
+  import { onMount, tick, untrack } from "svelte";
   import { WebExtensionAccessPrompt, WebExtensionReview } from "$features/webext";
   import { webext } from "$domain/webext";
   import { PagePermissionPrompt } from "$features/permissions";
@@ -34,6 +34,9 @@
   import { applyLanguage } from "$shared/lib/locale.svelte";
   import { applySpaceTheme, spaceThemeValues } from "$features/tabs";
   import * as m from "$shared/i18n/messages";
+  import { LaunchFormation, launchWanted } from "$features/launch";
+  import { reducedMotion } from "$shared/lib/motion";
+  import { gameMode } from "$shared/lib/resources.svelte";
   import Shell from "./Shell.svelte";
 
   // Follows the stored preference and nothing else. Adopting reads the
@@ -140,6 +143,10 @@
           : m.webext_store_install(),
     );
   });
+  // The name forming as the window shows: drawn still before the reveal,
+  // running once the window is on screen, gone after its second.
+  let launch = $state<"off" | "armed" | "running">("off");
+
   onMount(() => {
     let disposed = false;
 
@@ -199,6 +206,18 @@
         if (disposed) return;
         await applyLanguage(preferences.value("ui.language"));
         if (disposed) return;
+        if (
+          launchWanted({
+            enabled: preferences.value("ui.launch-animation") !== "false",
+            reducedMotion: reducedMotion(),
+            game: gameMode(),
+          })
+        ) {
+          launch = "armed";
+          // Drawn before native reveals the window, so it opens on the cover.
+          await tick();
+          if (disposed) return;
+        }
 
         // A hidden native window can suspend animation frames indefinitely.
         // Resolve style/layout synchronously before admitting native reveal.
@@ -207,7 +226,9 @@
         if (!(await commands.uiReady())) {
           throw new Error("native startup gate rejected UI");
         }
-        motion.reveal();
+        // With the launch playing, the sidebar's own entrance waits for its fade.
+        if (launch === "armed") launch = "running";
+        else motion.reveal();
       } catch {
         // Native owns the fail-closed watchdog. Keep attacker-controlled page
         // data and native internals out of this static diagnostic.
@@ -252,6 +273,13 @@
     <Dividers />
   {/if}
 </div>
+{#if launch !== "off"}
+  <LaunchFormation
+    running={launch === "running"}
+    onfade={() => motion.reveal()}
+    ondone={() => (launch = "off")}
+  />
+{/if}
 {#if webext.review() !== null}
   <WebExtensionReview review={webext.review()!} />
 {:else if webext.accessRequest() !== null}
