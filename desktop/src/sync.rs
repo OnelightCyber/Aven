@@ -20,8 +20,9 @@ use ring::rand::{SecureRandom, SystemRandom};
 use std::time::Duration;
 use zeroize::Zeroizing;
 
-/// The relay Aven syncs through. Until one is deployed, sync is not offered.
-const RELAY: Option<&str> = None;
+/// The relay Aven syncs through: the Worker in `relay/`, which stores only
+/// what it cannot read. Without one, sync is not offered.
+const RELAY: Option<&str> = Some("https://aven-relay.onelight1112.workers.dev");
 const CREDENTIAL: &str = "app.aven.sync";
 /// Domain label: salts the derivation and is bound to every ciphertext.
 const LABEL: &[u8] = b"aven-sync-v1";
@@ -244,6 +245,9 @@ enum Written {
 
 fn client() -> Option<reqwest::Client> {
     reqwest::Client::builder()
+        // A release build speaks to the relay over TLS or not at all; only
+        // a development build may reach a relay under test on this machine.
+        .https_only(!cfg!(debug_assertions))
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(15))
@@ -624,11 +628,12 @@ mod tests {
 
     #[test]
     fn a_release_build_speaks_only_to_the_relay_compiled_in() {
-        // No relay is deployed yet: sync is off the menu, whatever the
-        // environment says outside a development build.
+        // Whatever the environment says outside a development build.
         if !cfg!(debug_assertions) {
             assert_eq!(relay(), RELAY.map(str::to_owned));
         }
-        assert_eq!(RELAY, None);
+        let relay = RELAY.expect("a relay is compiled in");
+        assert!(relay.starts_with("https://"));
+        assert!(!relay.ends_with('/'));
     }
 }
