@@ -171,13 +171,62 @@ pub struct Merge {
     pub push: bool,
 }
 
+/// The saved setups of both sides, joined rather than one list replacing
+/// the other: a setup saved on either device is kept, and one deleted on
+/// either is gone. A list one side already holds is returned as that side
+/// wrote it, so two devices that agree never rewrite the setting.
+///
+/// A side that does not hold the setting at all has deleted nothing: it is
+/// a device that never saved a setup, or a box that expired on the relay.
+/// Only a list that is there, even empty, can say a setup is gone.
+fn merge_setups(
+    base: Option<&String>,
+    here: Option<&String>,
+    there: Option<&String>,
+) -> Option<String> {
+    use crate::setups::{saved, Setup, MAX_SETUPS};
+    if here.is_none() || there.is_none() {
+        return here.or(there).cloned();
+    }
+    let list = |value: Option<&String>| -> Vec<Setup> {
+        value.and_then(|value| saved(value)).unwrap_or_default()
+    };
+    let (was, mine, theirs) = (list(base), list(here), list(there));
+    let has = |list: &[Setup], id: &str| list.iter().any(|setup| setup.id == id);
+    // Mine, less what the other side deleted since we agreed.
+    let mut joined: Vec<Setup> = mine
+        .iter()
+        .filter(|setup| !has(&was, &setup.id) || has(&theirs, &setup.id))
+        .cloned()
+        .collect();
+    // Then what the other side saved since; what it still has only because
+    // I deleted it here stays deleted.
+    for setup in &theirs {
+        if !has(&mine, &setup.id) && !has(&was, &setup.id) && joined.len() < MAX_SETUPS {
+            joined.push(setup.clone());
+        }
+    }
+    if let (true, Some(here)) = (joined == mine, here) {
+        return Some(here.clone());
+    }
+    if let (true, Some(there)) = (joined == theirs, there) {
+        return Some(there.clone());
+    }
+    Some(if joined.is_empty() {
+        String::new()
+    } else {
+        serde_json::to_string(&joined).unwrap_or_default()
+    })
+}
+
 /// Brings this device and the relay's copy together, given what both held
 /// the last time they agreed (`base`).
 ///
 /// A setting changed on one side only keeps that change. A setting changed
 /// on both sides to different values keeps this device's value: it is the
 /// one the person is looking at. Settings cannot be unset, so a key missing
-/// from one side is simply taken from the other.
+/// from one side is simply taken from the other. The saved setups are a
+/// list, and are joined setup by setup instead.
 pub fn merge(base: &Settings, local: &Settings, remote: &Settings) -> Merge {
     let mut merged = Settings::new();
     let mut apply = Vec::new();
@@ -188,18 +237,27 @@ pub fn merge(base: &Settings, local: &Settings, remote: &Settings) -> Merge {
         .collect();
     for key in keys {
         let (was, here, there) = (base.get(key), local.get(key), remote.get(key));
-        let chosen = match (here, there) {
-            (Some(here), Some(there)) if here == there => here,
-            (Some(here), Some(there)) => {
-                if was == Some(here) {
-                    there
-                } else {
-                    here
-                }
+        let joined;
+        let chosen = if key == crate::setups::SETTING {
+            joined = merge_setups(was, here, there);
+            match &joined {
+                Some(list) => list,
+                None => continue,
             }
-            (Some(here), None) => here,
-            (None, Some(there)) => there,
-            (None, None) => continue,
+        } else {
+            match (here, there) {
+                (Some(here), Some(there)) if here == there => here,
+                (Some(here), Some(there)) => {
+                    if was == Some(here) {
+                        there
+                    } else {
+                        here
+                    }
+                }
+                (Some(here), None) => here,
+                (None, Some(there)) => there,
+                (None, None) => continue,
+            }
         };
         if here != Some(chosen) {
             apply.push((key.clone(), chosen.clone()));
@@ -413,5 +471,129 @@ mod tests {
         let again = merge(&first.merged, &first.merged, &first.merged);
         assert!(again.apply.is_empty() && !again.push);
         assert_eq!(again.merged, first.merged);
+    }
+
+    fn setup_list(ids: &[&str]) -> String {
+        let list: Vec<crate::setups::Setup> = ids
+            .iter()
+            .map(|id| crate::setups::Setup {
+                id: format!("{id:0>16}"),
+                name: format!("Setup {id}"),
+                settings: [("appearance".to_owned(), "dark".to_owned())].into(),
+            })
+            .collect();
+        if list.is_empty() {
+            String::new()
+        } else {
+            serde_json::to_string(&list).unwrap()
+        }
+    }
+
+    fn ids_of(settings: &Settings) -> Vec<String> {
+        crate::setups::saved(&settings[crate::setups::SETTING])
+            .unwrap()
+            .into_iter()
+            .map(|setup| setup.id.trim_start_matches('0').to_owned())
+            .collect()
+    }
+
+    fn holding(list: &str) -> Settings {
+        settings(&[(crate::setups::SETTING, list)])
+    }
+
+    fn lists(base: &[&str], local: &[&str], remote: &[&str]) -> Merge {
+        let of = |ids: &[&str]| holding(&setup_list(ids));
+        merge(&of(base), &of(local), &of(remote))
+    }
+
+    #[test]
+    fn setups_saved_on_two_devices_at_once_are_both_kept() {
+        let both = lists(&[], &["a"], &["b"]);
+        assert_eq!(ids_of(&both.merged), ["a", "b"]);
+        assert_eq!(both.apply.len(), 1);
+        assert!(both.push);
+        assert!(crate::preferences::value_allowed(
+            crate::setups::SETTING,
+            &both.merged[crate::setups::SETTING]
+        ));
+        // On top of setups they already shared.
+        let more = lists(&["a"], &["a", "b"], &["a", "c"]);
+        assert_eq!(ids_of(&more.merged), ["a", "b", "c"]);
+    }
+
+    #[test]
+    fn a_setup_deleted_on_either_device_is_gone_and_does_not_come_back() {
+        // Deleted there: gone here, nothing to push.
+        let there = lists(&["a", "b"], &["a", "b"], &["b"]);
+        assert_eq!(ids_of(&there.merged), ["b"]);
+        assert_eq!(there.apply.len(), 1);
+        assert!(!there.push);
+        // Deleted here while the other device saved one: both happen.
+        let here = lists(&["a", "b"], &["b"], &["a", "b", "c"]);
+        assert_eq!(ids_of(&here.merged), ["b", "c"]);
+        assert!(here.push);
+        // Deleted on both, down to none.
+        let none = lists(&["a"], &[], &[]);
+        assert_eq!(none.merged[crate::setups::SETTING], "");
+        assert!(none.apply.is_empty() && !none.push);
+    }
+
+    #[test]
+    fn a_box_that_vanished_takes_no_setup_with_it() {
+        // The relay's box expired: it holds nothing, which is not a list
+        // saying every setup was deleted.
+        let kept = merge(
+            &holding(&setup_list(&["a", "b"])),
+            &holding(&setup_list(&["a", "b"])),
+            &Settings::new(),
+        );
+        assert_eq!(ids_of(&kept.merged), ["a", "b"]);
+        assert!(kept.apply.is_empty());
+        assert!(kept.push);
+        // An empty list that is there does say so.
+        let emptied = lists(&["a", "b"], &["a", "b"], &[]);
+        assert_eq!(emptied.merged[crate::setups::SETTING], "");
+        assert_eq!(emptied.apply.len(), 1);
+        // And a device that holds no such setting deletes nothing either.
+        let joining = merge(
+            &holding(&setup_list(&["a"])),
+            &Settings::new(),
+            &holding(&setup_list(&["a", "b"])),
+        );
+        assert_eq!(ids_of(&joining.merged), ["a", "b"]);
+    }
+
+    #[test]
+    fn agreeing_devices_never_rewrite_the_setups_and_the_list_stays_bounded() {
+        let same = lists(&["a", "b"], &["a", "b"], &["a", "b"]);
+        assert!(same.apply.is_empty() && !same.push);
+        // The same setups written with other spacing are not a change here.
+        let spaced = setup_list(&["a"]).replace(",\"name\"", ", \"name\"");
+        assert!(crate::setups::saved_allowed(&spaced));
+        let reworded = merge(
+            &holding(&setup_list(&["a"])),
+            &holding(&setup_list(&["a"])),
+            &holding(&spaced),
+        );
+        assert!(reworded.apply.is_empty());
+        // A full list takes no more from the other side.
+        let full: Vec<String> = (0..crate::setups::MAX_SETUPS)
+            .map(|n| format!("{n:x}"))
+            .collect();
+        let full: Vec<&str> = full.iter().map(String::as_str).collect();
+        let bounded = lists(&[], &full, &["ff"]);
+        assert_eq!(ids_of(&bounded.merged).len(), crate::setups::MAX_SETUPS);
+        assert!(!ids_of(&bounded.merged).contains(&"ff".to_owned()));
+        // A device that never saved any takes the other's whole list as is.
+        let fresh = merge(
+            &Settings::new(),
+            &Settings::new(),
+            &holding(&setup_list(&["a", "b"])),
+        );
+        assert_eq!(
+            fresh.merged[crate::setups::SETTING],
+            setup_list(&["a", "b"])
+        );
+        assert!(!fresh.push);
     }
 }
