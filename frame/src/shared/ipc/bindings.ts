@@ -622,6 +622,13 @@ export const commands = {
 } | null>("launcher_set_double_tap", { mode }),
 	launcherOpenAccessibility: () => __TAURI_INVOKE<void>("launcher_open_accessibility"),
 	settingGet: (key: string) => __TAURI_INVOKE<string | null>("setting_get", { key }),
+	/**
+	 *  Every stored setting in one answer, for the interface's start: it would
+	 *  otherwise ask for each key in turn before the window can be shown. The
+	 *  same keys, and for each the value `setting_get` gives; a key never set is
+	 *  left out, as `setting_get` answers nothing for it.
+	 */
+	settingsSnapshot: () => __TAURI_INVOKE<{ [key in string]: string }>("settings_snapshot"),
 	searchShortcutDefaults: () => __TAURI_INVOKE<SearchShortcut_Serialize[]>("search_shortcut_defaults"),
 	settingSet: (key: string, value: string) => __TAURI_INVOKE<OperationAdmission>("setting_set", { key, value }),
 	windowsDiagnosticsSettings: () => __TAURI_INVOKE<boolean>("windows_diagnostics_settings"),
