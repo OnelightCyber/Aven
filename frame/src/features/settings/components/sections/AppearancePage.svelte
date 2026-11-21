@@ -242,6 +242,7 @@
       onchange={(v) => void preferences.set("ui.reduce-motion", String(v))}
     /></SettingsRow
   >
+  <PreferenceSwitch id="appearance.launch-animation" preference="ui.launch-animation" />
 </SettingsGroup>
 
 <style>
