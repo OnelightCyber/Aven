@@ -1354,6 +1354,29 @@ impl EngineHost {
             // recreate every visible member without racing the old process.
             self.sink
                 .emit(EngineEvent::ProfileProcessExited { profile, ids });
+        } else if let Some(partition) = self.kept_ready.filter(|kept| kept.profile() == profile) {
+            // The group ended with its last page and gave back what it held.
+            // Kept ready, a fresh one starts ahead of the next page, from a
+            // later loop turn: this runs inside WebView2's own callback, and
+            // WebView2 completes nothing more, not even the creation of a
+            // view, until that callback has returned. A view made from here
+            // would wait for ever and hold the whole engine with it.
+            let timer = crate::platform::imp::schedule_browser_timeout(
+                std::time::Duration::from_millis(1),
+                move || {
+                    super::dispatch::best_effort_with(move |host| {
+                        if host.kept_ready == Some(partition) {
+                            host.ensure_spare_ahead(partition);
+                        }
+                    });
+                },
+            );
+            // The one-shot timer owns its callback until it fires; only its
+            // cancellation guard is let go. Without a timer, nothing is
+            // built: the next page then starts the group itself.
+            if let Some(timer) = timer {
+                std::mem::forget(timer);
+            }
         }
     }
 
