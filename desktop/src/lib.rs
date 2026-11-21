@@ -1996,6 +1996,7 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             launcher_set_double_tap,
             launcher_open_accessibility,
             setting_get,
+            settings_snapshot,
             search_shortcut_defaults,
             setting_set,
             windows_privacy::windows_diagnostics_settings,
@@ -5330,6 +5331,45 @@ async fn setting_get(caller: WebviewWindow, key: String) -> Option<String> {
     .await
     .ok()
     .flatten()
+}
+
+/// Every stored setting in one answer, for the interface's start: it would
+/// otherwise ask for each key in turn before the window can be shown. The
+/// same keys, and for each the value `setting_get` gives; a key never set is
+/// left out, as `setting_get` answers nothing for it.
+#[tauri::command]
+#[specta::specta]
+async fn settings_snapshot(caller: WebviewWindow) -> std::collections::BTreeMap<String, String> {
+    if !authorize(&caller, CallerPolicy::Both, "settings_snapshot") {
+        return std::collections::BTreeMap::new();
+    }
+    tauri::async_runtime::spawn_blocking(|| {
+        settings_stored(|key| APP_STORE.get().and_then(|store| store.app_setting(key)))
+    })
+    .await
+    .unwrap_or_default()
+}
+
+/// The snapshot from any source of stored settings.
+fn settings_stored(
+    stored: impl Fn(&str) -> Option<String>,
+) -> std::collections::BTreeMap<String, String> {
+    SETTING_KEYS
+        .iter()
+        .filter_map(|key| {
+            #[cfg(feature = "work-product")]
+            if *key == "work.screenshots" {
+                return Some((
+                    (*key).to_owned(),
+                    aven_app::work_screenshots::enabled().to_string(),
+                ));
+            }
+            Some((
+                (*key).to_owned(),
+                setting_value_for_frame(key, stored(key))?,
+            ))
+        })
+        .collect()
 }
 
 #[tauri::command]
@@ -10110,6 +10150,35 @@ mod tests {
         assert!(!super::exit_request_is_authorized(None, 1));
         assert!(super::exit_request_is_authorized(Some(0), 0));
         assert!(super::exit_request_is_authorized(Some(1), 1));
+    }
+
+    #[test]
+    fn the_settings_snapshot_holds_what_each_setting_would_answer_alone() {
+        let stored = |key: &str| match key {
+            "appearance" => Some("dark".to_owned()),
+            "search.shortcuts" => Some("not a registry".to_owned()),
+            "not.a.setting" => Some("x".to_owned()),
+            _ => None,
+        };
+        let snapshot = super::settings_stored(stored);
+        assert_eq!(snapshot.get("appearance").map(String::as_str), Some("dark"));
+        // Read as `setting_get` reads it: a stored list that no longer
+        // parses is given as empty.
+        assert_eq!(
+            snapshot.get("search.shortcuts").cloned(),
+            super::setting_value_for_frame("search.shortcuts", stored("search.shortcuts"))
+        );
+        assert_eq!(
+            snapshot.get("search.shortcuts").map(String::as_str),
+            Some("")
+        );
+        // A key never set is absent, and nothing outside the settings is
+        // carried, whatever the store holds.
+        assert!(!snapshot.contains_key("ui.accent"));
+        assert!(!snapshot.contains_key("not.a.setting"));
+        assert!(snapshot
+            .keys()
+            .all(|key| super::SETTING_KEYS.contains(&key.as_str())));
     }
 
     #[test]
