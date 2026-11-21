@@ -2,6 +2,8 @@ name = "aven-relay"
 main = "src/worker.js"
 compatibility_date = "2026-11-01"
 workers_dev = true
+# Wrangler sends nothing about its use from this project.
+send_metrics = false
 
 # Nothing about a request is kept: no logs of paths, which carry ids.
 [observability]
