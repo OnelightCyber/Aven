@@ -269,11 +269,14 @@ export async function set(key: PreferenceKey, next: string) {
   }
 }
 
+/** What a reset leaves alone: things the person made, kept in a setting. */
+const KEPT_ON_RESET: readonly PreferenceKey[] = ["ui.setups"];
+
 /** Every preference back to how Aven ships, one validated write at a
- *  time. False when any of them did not land. */
+ *  time. False when any of them did not land. The saved setups stay. */
 export async function resetAll(): Promise<boolean> {
   for (const key of Object.keys(defaults) as PreferenceKey[]) {
-    if (values[key] === defaults[key]) continue;
+    if (KEPT_ON_RESET.includes(key) || values[key] === defaults[key]) continue;
     await set(key, defaults[key]);
     if (failed || values[key] !== defaults[key]) return false;
   }
