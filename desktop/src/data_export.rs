@@ -99,7 +99,10 @@ pub(crate) async fn export_browser_data(
     }
 }
 
-fn write_export(path: &std::path::Path, mut bytes: impl std::io::Read) -> std::io::Result<()> {
+pub(super) fn write_export(
+    path: &std::path::Path,
+    mut bytes: impl std::io::Read,
+) -> std::io::Result<()> {
     let parent = path
         .parent()
         .ok_or_else(|| std::io::Error::other("missing export directory"))?;
