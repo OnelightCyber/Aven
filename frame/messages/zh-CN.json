@@ -4247,5 +4247,7 @@
   "sync_refused": "该代码未被接受。",
   "sync_unreadable": "无法读取收到的内容。未做任何更改。",
   "sync_newer": "另一台设备使用更新版本的 Aven。请更新这台设备后再同步。",
-  "sync_busy": "同步正在进行中。"
+  "sync_busy": "同步正在进行中。",
+  "pref_launch_animation": "启动动画",
+  "pref_launch_animation_help": "打开 Aven 时，名称由点汇聚而成。持续不到一秒，在减少动态效果或游戏模式下不会播放。"
 }
