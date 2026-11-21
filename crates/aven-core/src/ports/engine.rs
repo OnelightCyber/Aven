@@ -1114,6 +1114,10 @@ pub trait Engine {
     /// Close the warm spare, if one is waiting: browsing has gone quiet, and
     /// the next completed load warms another.
     fn release_spare(&self) {}
+    /// Whether Microsoft Defender SmartScreen checks the pages: at once while
+    /// no page has been made since launch (a choice at first run), else from
+    /// the next launch, since WebView2 fixes it for a running engine.
+    fn set_reputation_checking(&self, _required: bool) {}
     /// Keep `partition`'s page engine running while it has no page open, so
     /// the first page a person opens does not wait for the engine to start;
     /// `None` lets it stop with its last page again. Said again whenever it
