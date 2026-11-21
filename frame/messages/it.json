@@ -4249,5 +4249,6 @@
   "sync_newer": "Un altro dispositivo usa un Aven più recente. Aggiorna questo per sincronizzare.",
   "sync_busy": "Una sincronizzazione è già in corso.",
   "pref_launch_animation": "Animazione di avvio",
-  "pref_launch_animation_help": "All’apertura di Aven il nome si compone di punti, poi compare la finestra. Non parte mai con il movimento ridotto o in modalità gioco."
+  "pref_launch_animation_help": "All’apertura di Aven il nome si compone di punti, poi compare la finestra. Non parte mai con il movimento ridotto o in modalità gioco.",
+  "onb_smartscreen_help": "Controlla i siti che apri e i tuoi download contro phishing e malware inviandone gli indirizzi a Microsoft. Puoi disattivarlo qui o più tardi in Impostazioni, Privacy e sicurezza."
 }
