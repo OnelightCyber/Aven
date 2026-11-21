@@ -14,6 +14,7 @@ const defaults = {
   "ui.accent": "graphite",
   "ui.material": "auto",
   "ui.reduce-motion": "false",
+  "ui.launch-animation": "true",
   "ui.newtab-greeting": "false",
   "ui.newtab-name": "false",
   "ui.newtab-clock": "true",
