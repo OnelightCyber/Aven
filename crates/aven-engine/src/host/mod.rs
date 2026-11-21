@@ -643,6 +643,9 @@ pub(crate) struct EngineHost {
     #[cfg(not(target_os = "windows"))]
     content_rule_cache_gc_removed_in_cycle: bool,
     spare: Option<Spare>,
+    /// The partition whose process group stays up with no page open, when
+    /// the shell asked for that: its spare then outlives its last page.
+    kept_ready: Option<Partition>,
     memory_pressure: aven_core::ports::engine::MemoryPressure,
     #[cfg(target_os = "macos")]
     discarded_states: HashMap<ItemId, discard::DiscardedState>,
