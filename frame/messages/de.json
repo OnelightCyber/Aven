@@ -4247,5 +4247,7 @@
   "sync_refused": "Dieser Code wurde nicht angenommen.",
   "sync_unreadable": "Das Empfangene konnte nicht gelesen werden. Nichts wurde geändert.",
   "sync_newer": "Ein anderes Gerät nutzt ein neueres Aven. Aktualisiere dieses, um zu synchronisieren.",
-  "sync_busy": "Eine Synchronisierung läuft bereits."
+  "sync_busy": "Eine Synchronisierung läuft bereits.",
+  "pref_launch_animation": "Startanimation",
+  "pref_launch_animation_help": "Der Name setzt sich beim Öffnen von Aven aus Punkten zusammen. Sie dauert weniger als eine Sekunde und läuft nie bei reduzierter Bewegung oder im Spielmodus."
 }
