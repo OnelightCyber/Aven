@@ -886,6 +886,19 @@ impl EngineHost {
         if self.spare_serves_a_call() {
             return;
         }
+        // A spare that is all its profile's group has: letting it go ends the
+        // group, which `close_idle_spare` does in full, unless that spare is
+        // the engine kept ready.
+        #[cfg(target_os = "windows")]
+        if let Some(profile) = self
+            .spare
+            .as_ref()
+            .map(|spare| spare.partition.profile())
+            .filter(|profile| !self.has_live_profile_view(*profile))
+        {
+            self.close_idle_spare(profile);
+            return;
+        }
         if let Some(spare) = self.spare.take() {
             #[cfg(target_os = "windows")]
             {
