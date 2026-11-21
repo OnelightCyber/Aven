@@ -23,7 +23,31 @@ Notable changes to Aven. The format follows
   and search engine, encrypted on the device with a key derived from a code
   you type on the other device (Settings, General). The relay never sees
   the code, the key or anything readable.
+- A launch animation: the name forms out of its dots as the window opens,
+  holds a moment, then gives way to the browser. A click or a key skips it;
+  it never plays with reduced motion or in game mode, and it can be turned
+  off (Settings, Appearance).
 - A [roadmap](ROADMAP.md).
+
+### Changed
+
+- Aven opens faster: the interface reads every setting in one call at
+  startup instead of one call a setting.
+- The first opening of Appearance no longer waits for the graphics driver:
+  the mode pictures are drawn without a blurred shadow or a slanted cut.
+- The first page opens about a second sooner on Windows. With no page open,
+  Aven now keeps its page engine ready, so the first page no longer waits
+  for the engine to start and for Windows to finish looking for a proxy.
+  Closing the last page still ends the engine and gives its memory back; a
+  fresh one starts once it has gone. Save memory (Settings, Performance)
+  turns this off.
+
+### Fixed
+
+- The memory figure at the foot of the sidebar and in the task manager is
+  now what Aven holds in memory, the figure Windows' Task Manager adds up
+  for the same processes. It used to count everything Aven's processes had
+  asked for, touched or not, and read well above what Windows showed.
 
 ## 1.0.6 - 2026-11-20
 
