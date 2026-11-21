@@ -1579,8 +1579,18 @@ These inherited properties must not be overstated:
   valid transition is the ordinary ordered whole-application shutdown followed by a
   restart. Automatic restart remains deliberately outside this callback path.
 - A warm spare is admitted only while its profile still owns a real live
-  controller. Closing the profile's final real view synchronously closes a
-  matching spare as well, including typed cleanup-debt capture. WebView2 then
+  controller, with one exception: on Windows the shell may keep the page
+  engine of the profile in front ready with no page open, so the first page
+  does not wait for a process group to start and for the system proxy search
+  that follows. That spare is never built for a private profile, a profile
+  being erased, under memory pressure, when the person chose to save memory,
+  before the window's launch has played, or while the profile's previous
+  process group may still run. Closing the profile's final real view still
+  synchronously closes a matching spare, including typed cleanup-debt
+  capture, so the group and everything the session left in it end with the
+  last page; the fresh spare is built from a later loop turn once
+  `BrowserProcessExited` has finalized that group, never inside WebView2's
+  callback. WebView2 then
   performs normal process-group shutdown; Aven retains the Environment5
   observer and exact process HANDLE until `BrowserProcessExited` and the
   signalled HANDLE agree on the same PID/generation, at which point the idle
