@@ -1114,6 +1114,11 @@ pub trait Engine {
     /// Close the warm spare, if one is waiting: browsing has gone quiet, and
     /// the next completed load warms another.
     fn release_spare(&self) {}
+    /// Keep `partition`'s page engine running while it has no page open, so
+    /// the first page a person opens does not wait for the engine to start;
+    /// `None` lets it stop with its last page again. Said again whenever it
+    /// may have lapsed: asking twice costs nothing.
+    fn keep_engine_ready(&self, _partition: Option<Partition>) {}
     /// Hidden views the shell's idle policy wants suspended. The engine
     /// suspends where it has a primitive (WebView2, WebKit scheduling policy)
     /// and resumes implicitly when a view becomes visible again. A page that
