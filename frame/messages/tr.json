@@ -4247,5 +4247,7 @@
   "sync_refused": "Bu kod kabul edilmedi.",
   "sync_unreadable": "Gelen veri okunamadı. Hiçbir şey değiştirilmedi.",
   "sync_newer": "Başka bir aygıt daha yeni bir Aven kullanıyor. Eşitlemek için bunu güncelleyin.",
-  "sync_busy": "Bir eşitleme zaten sürüyor."
+  "sync_busy": "Bir eşitleme zaten sürüyor.",
+  "pref_launch_animation": "Açılış animasyonu",
+  "pref_launch_animation_help": "Aven açılırken ad noktalardan oluşur. Bir saniyeden kısa sürer; azaltılmış hareket veya oyun modunda hiç oynatılmaz."
 }
