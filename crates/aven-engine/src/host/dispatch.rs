@@ -488,6 +488,7 @@ pub(crate) fn install(
             #[cfg(not(target_os = "windows"))]
             content_rule_cache_gc_removed_in_cycle: false,
             spare: None,
+            kept_ready: None,
             memory_pressure: aven_core::ports::engine::MemoryPressure::Normal,
             #[cfg(target_os = "macos")]
             discarded_states: HashMap::new(),
