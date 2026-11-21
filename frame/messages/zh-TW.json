@@ -4249,5 +4249,6 @@
   "sync_newer": "另一部裝置使用較新版本的 Aven。請更新這部裝置後再同步。",
   "sync_busy": "同步正在進行中。",
   "pref_launch_animation": "啟動動畫",
-  "pref_launch_animation_help": "開啟 Aven 時，名稱由點聚合而成，接著顯示視窗。在減少動態效果或遊戲模式下不會播放。"
+  "pref_launch_animation_help": "開啟 Aven 時，名稱由點聚合而成，接著顯示視窗。在減少動態效果或遊戲模式下不會播放。",
+  "onb_smartscreen_help": "將你開啟的網站和下載的位址傳送給 Microsoft，檢查網路釣魚和惡意軟體。你可以在這裡關閉，或稍後在「設定」的「隱私權與安全性」中關閉。"
 }
