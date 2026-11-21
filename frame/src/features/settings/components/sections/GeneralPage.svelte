@@ -3,6 +3,7 @@
   import PreferenceSelect from "../PreferenceSelect.svelte";
   import ImportBrowserData from "../ImportBrowserData.svelte";
   import ExportBrowserData from "../ExportBrowserData.svelte";
+  import SyncDevices from "../SyncDevices.svelte";
   import DownloadPreferences from "../DownloadPreferences.svelte";
   import LoginItemRow from "../LoginItemRow.svelte";
   import LanguageRow from "../LanguageRow.svelte";
@@ -69,4 +70,5 @@
   <ImportBrowserData />
   <ExportBrowserData />
 </SettingsGroup>
+<SyncDevices />
 <DownloadPreferences />
