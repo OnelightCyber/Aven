@@ -74,6 +74,33 @@ export async function admit(storedDigest, token) {
   return { allowed: same(storedDigest, offered), claim: null };
 }
 
+/** A request's body, or nothing once it holds more than `limit` bytes.
+ *  Reading stops there, so a caller that declares no length cannot make the
+ *  relay hold a body it is going to refuse. */
+export async function readBounded(request, limit) {
+  if (!request.body) return new ArrayBuffer(0);
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes.buffer;
+}
+
 /** The version of `If-Match: "<n>"`, `*` for `If-None-Match: *`, or nothing. */
 export function precondition(ifMatch, ifNoneMatch) {
   if (ifNoneMatch === "*") return "*";
