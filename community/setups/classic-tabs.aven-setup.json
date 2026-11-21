@@ -1,0 +1,11 @@
+{
+  "aven_setup": 1,
+  "name": "Classic tabs",
+  "settings": {
+    "sidebar.mode": "default",
+    "tabs.after-close": "next",
+    "tabs.close-button": "always",
+    "tabs.new-position": "end",
+    "ui.tab-layout": "horizontal"
+  }
+}
