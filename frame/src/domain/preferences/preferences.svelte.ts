@@ -82,6 +82,7 @@ const defaults = {
   "privacy.streamer-auto": "true",
   "privacy.cookie-banners-except": "",
   "ui.force-dark-except": "",
+  "ui.setups": "",
 } as const;
 export type PreferenceKey = keyof typeof defaults;
 const STARTUP_CONCURRENCY = 8;
