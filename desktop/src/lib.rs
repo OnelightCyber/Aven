@@ -4709,7 +4709,9 @@ fn ui_ready(
         return false;
     }
     let ready = gate.mark_frontend_ready(&caller);
-    if ready {
+    // Onboarding is not the browser yet: nothing starts ahead of a page
+    // while it shows, and the choices it offers are still open.
+    if ready && !gate.serves_onboarding(&caller) {
         // The page engine may start ahead of the first page, but only once
         // the window's entrance has played: its processes starting must not
         // cost the launch a frame.
