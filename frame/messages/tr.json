@@ -4249,5 +4249,6 @@
   "sync_newer": "Başka bir aygıt daha yeni bir Aven kullanıyor. Eşitlemek için bunu güncelleyin.",
   "sync_busy": "Bir eşitleme zaten sürüyor.",
   "pref_launch_animation": "Açılış animasyonu",
-  "pref_launch_animation_help": "Aven açılırken ad noktalardan oluşur, ardından pencere görünür. Azaltılmış hareket veya oyun modunda hiç oynatılmaz."
+  "pref_launch_animation_help": "Aven açılırken ad noktalardan oluşur, ardından pencere görünür. Azaltılmış hareket veya oyun modunda hiç oynatılmaz.",
+  "onb_smartscreen_help": "Açtığınız siteleri ve indirmelerinizi, adreslerini Microsoft’a göndererek kimlik avı ve kötü amaçlı yazılımlara karşı denetler. Bunu burada ya da daha sonra Ayarlar, Gizlilik ve güvenlik bölümünden kapatabilirsiniz."
 }
