@@ -9,6 +9,7 @@
   import Button from "$shared/ui/Button";
   import Icon from "$shared/ui/Icon";
   import KeyHint from "$shared/ui/KeyHint";
+  import Switch from "$shared/ui/Switch";
   import { IS_MAC, IS_WINDOWS } from "$shared/platform";
   import { reducedMotion } from "$shared/lib/motion";
   import { WORDMARK } from "$shared/lib/wordmark";
@@ -276,6 +277,19 @@
         >{m.onb_begin()}<KeyHint keys={["↵"]} /></Button
       >
     </div>
+    {#if IS_WINDOWS}
+      <!-- The one thing Aven sends to a third party unless told otherwise,
+           said before anything else is asked, with the way to stop it. -->
+      <div class="disclosure" data-glass-text>
+        <Switch
+          label={m.privacy_smartscreen()}
+          description={m.onb_smartscreen_help()}
+          checked={preferences.value("privacy.smartscreen") !== "false"}
+          disabled={preferences.saving()}
+          onchange={(on) => void preferences.set("privacy.smartscreen", String(on))}
+        />
+      </div>
+    {/if}
 
     {#key step}
       {@const heading = headings[step]}
@@ -434,6 +448,36 @@
 
   .welcome > :global(:last-child) {
     transition-delay: 220ms;
+  }
+
+  /* At the foot of the welcome, out of the way of the name: small, and gone
+     once setup starts. Its switch keeps the interface's own colours. */
+  .disclosure {
+    position: absolute;
+    inset-block-end: 28px;
+    inset-inline: 0;
+    display: flex;
+    justify-content: center;
+    padding-inline: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms var(--ease-out);
+  }
+
+  .disclosure :global(.control) {
+    max-inline-size: 60ch;
+    padding: 10px 14px;
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+    color: var(--color-text);
+    font-size: 13px;
+  }
+
+  .onboarding[data-step="welcome"]:is([data-phase="formed"], [data-phase="still"]) .disclosure {
+    opacity: 1;
+    pointer-events: auto;
+    transition-duration: 1000ms;
+    transition-delay: 400ms;
   }
 
   .welcome :global(.ui-button) {
