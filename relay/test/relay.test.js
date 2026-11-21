@@ -12,6 +12,7 @@ import {
   bearer,
   digest,
   precondition,
+  readBounded,
   route,
   same,
   socketToken,
@@ -87,6 +88,28 @@ test("a precondition is a quoted version or the create mark", () => {
   assert.equal(precondition('"7"', null), 7);
   assert.equal(precondition(null, "*"), "*");
   for (const header of [null, "7", '"x"', '"-1"', 'W/"7"']) assert.equal(precondition(header, null), null);
+});
+
+test("a body is read up to its limit and no further", async () => {
+  const sent = (chunks) => {
+    let pulled = 0;
+    const body = new ReadableStream({
+      pull(controller) {
+        if (pulled === chunks.length) return controller.close();
+        controller.enqueue(new Uint8Array(chunks[pulled++]));
+      },
+    });
+    const request = new Request("https://relay.test/", { method: "PUT", body, duplex: "half" });
+    return { request, pulled: () => pulled };
+  };
+  const small = sent([3, 4]);
+  assert.equal((await readBounded(small.request, 8)).byteLength, 7);
+  assert.equal((await readBounded(sent([8]).request, 8)).byteLength, 8);
+  // Ten chunks declared by nobody: reading stops soon after the limit.
+  const large = sent(Array(10).fill(4));
+  assert.equal(await readBounded(large.request, 8), null);
+  assert.ok(large.pulled() < 10, `read ${large.pulled()} chunks`);
+  assert.equal((await readBounded(new Request("https://relay.test/"), 8)).byteLength, 0);
 });
 
 test("a bucket gives its burst, then refills at its rate", () => {
