@@ -75,6 +75,22 @@ fn temporary_page_held(page: Option<(ProfileId, usize)>, spare: Option<ProfileId
     matches!((page, spare), (Some((owner, users)), Some(profile)) if owner == profile && users > 0)
 }
 
+/// Whether a spare with no page beside it is the engine kept ready, and so
+/// stays when browsing goes quiet or a call that borrowed it ends: only for
+/// the partition the shell asked for, never a private one, and never while
+/// memory is short.
+fn keeps_engine_ready(
+    kept: Option<aven_core::ports::engine::Partition>,
+    profile: ProfileId,
+    pressure: aven_core::ports::engine::MemoryPressure,
+) -> bool {
+    pressure == aven_core::ports::engine::MemoryPressure::Normal
+        && kept.is_some_and(|partition| {
+            partition.profile() == profile
+                && !matches!(partition, aven_core::ports::engine::Partition::Ephemeral(_))
+        })
+}
+
 /// Whether a page of `owner` holds `profile`'s durable store.
 #[cfg(any(test, target_os = "windows"))]
 fn durable_partition_of(owner: aven_core::ports::engine::Partition, profile: ProfileId) -> bool {
@@ -100,7 +116,40 @@ impl EngineHost {
         )
     }
 
+    /// The shell's word on keeping a profile's engine up with no page open.
+    /// Withdrawn, or given to another profile, a spare that was all its group
+    /// had goes at once; given, the spare is built if the profile has no
+    /// group running.
+    #[cfg(target_os = "windows")]
+    pub(crate) fn keep_ready(&mut self, partition: Option<aven_core::ports::engine::Partition>) {
+        let before = self.kept_ready.map(|kept| kept.profile());
+        self.kept_ready = partition;
+        let now = partition.map(|kept| kept.profile());
+        if let Some(profile) = before.filter(|profile| now != Some(*profile)) {
+            self.end_idle_spare(profile);
+        }
+        if let Some(partition) = partition {
+            self.ensure_spare_ahead(partition);
+        }
+    }
+
+    /// Lets go of a spare nothing uses any longer, unless it is what keeps
+    /// the engine ready for the next page. A profile's last page closing
+    /// does not come through here: it always ends the group.
     pub(super) fn close_idle_spare(&mut self, profile: ProfileId) {
+        if !self.has_live_profile_view(profile)
+            && keeps_engine_ready(self.kept_ready, profile, self.memory_pressure)
+        {
+            return;
+        }
+        self.end_idle_spare(profile);
+    }
+
+    /// Closes the spare of a profile with no page left, which ends its
+    /// process group. The last page closing always does: the group gives back
+    /// everything the session made it hold, and where the engine is kept
+    /// ready a fresh one starts once this one is seen to have ended.
+    pub(super) fn end_idle_spare(&mut self, profile: ProfileId) {
         if self.has_live_profile_view(profile) {
             return;
         }
@@ -292,7 +341,7 @@ impl EngineHost {
             let view = if let Some(downloads) = &self.downloads {
                 match downloads.retain_closed_view(view) {
                     None => {
-                        self.close_idle_spare(profile);
+                        self.end_idle_spare(profile);
                         return;
                     }
                     Some(view) => view,
@@ -322,7 +371,7 @@ impl EngineHost {
         #[cfg(all(unix, not(target_os = "macos")))]
         drop(removed);
         if let Some(profile) = profile {
-            self.close_idle_spare(profile);
+            self.end_idle_spare(profile);
         }
     }
 
