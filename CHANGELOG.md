@@ -6,6 +6,25 @@ Notable changes to Aven. The format follows
 
 ## Unreleased
 
+### Added
+
+- Setups: save how Aven looks and is laid out under a name, switch between
+  setups, and carry one to another machine as a file (Settings, Appearance).
+  A setup changes appearance and layout only; a file from someone else
+  cannot touch privacy, security, search or your data, and is saved rather
+  than applied.
+- Community setups: a gallery read from this repository when you open it,
+  with six setups to start from. Sharing one is a pull request
+  ([community/setups](community/setups/README.md)).
+- A relay for encrypted sync and for working together, as a Cloudflare
+  Worker with no dependencies ([relay](relay/README.md)). It stores and
+  passes on only what it cannot read. Not deployed yet.
+- Sync between your devices, with no account: appearance, setups, language
+  and search engine, encrypted on the device with a key derived from a code
+  you type on the other device. It is in the code and tested against the
+  relay's rules, and stays hidden until a relay is deployed.
+- A [roadmap](ROADMAP.md).
+
 ## 1.0.6 - 2026-11-20
 
 ### Changed
