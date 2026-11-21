@@ -559,6 +559,9 @@ pub enum Command {
     /// Pages are native views above chrome, so they leave the stage while
     /// it shows.
     SetChromeModal(bool),
+    /// The window is on screen and its entrance has played: from here the
+    /// page engine may be kept ready for the first page.
+    KeepEngineReady,
     ShowBrowserPage(Option<BrowserPage>),
     /// Shows the transient Work browser pane over an existing Space tab or a
     /// fresh tab navigated to `Url`. `rect` is window-local and clamped.
