@@ -1,0 +1,14 @@
+{
+  "aven_setup": 1,
+  "name": "Bare",
+  "settings": {
+    "sidebar.mode": "hidden",
+    "ui.density": "compact",
+    "ui.newtab-clock": "false",
+    "ui.newtab-focus": "false",
+    "ui.newtab-greeting": "false",
+    "ui.newtab-tasks": "false",
+    "ui.newtab-trackers": "false",
+    "ui.newtab-wordmark": "false"
+  }
+}
